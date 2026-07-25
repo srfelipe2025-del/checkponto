@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>CheckPonto - Relatório e Impressão de Ponto</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 900px; }
+        h2 { text-align: center; color: #333; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
+        
+        .filtros { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: flex; gap: 15px; align-items: flex-end; border: 1px solid #ddd; }
+        .filtros div { display: flex; flex-direction: column; flex: 1; }
+        .filtros label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .filtros input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        
+        .btn-acao { padding: 9px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; height: 38px; }
+        .btn-acao:hover { background: #0056b3; }
+        .btn-imprimir { background: #28a745; }
+        .btn-imprimir:hover { background: #218838; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
+        th { background-color: #343a40; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        
+        .menu-nav { margin-bottom: 20px; display: flex; gap: 10px; }
+        .btn-link { padding: 8px 12px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; }
+        .btn-link:hover { background: #5a6268; }
+
+        /* Estilo específico para quando mandar imprimir (oculta menus e botões) */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; width: 100%; padding: 0; }
+            .menu-nav, .filtros, .nao-imprimir { display: none !important; }
+            h2 { margin-top: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="menu-nav">
+            <a href="acompanhamento.html" class="btn-link">← Voltar para Gestão</a>
+            <button onclick="window.print()" class="btn-acao btn-imprimir">Imprimir Relatório</button>
+        </div>
+        
+        <h2>Relatório de Frequência por Período</h2>
+        <div class="subtitle">Consolidado de registros e atestados da equipe</div>
+
+        <div class="filtros">
+            <div>
+                <label for="dataInicio">Data Inicial:</label>
+                <input type="date" id="dataInicio">
+            </div>
+            <div>
+                <label for="dataFim">Data Final:</label>
+                <input type="date" id="dataFim">
+            </div>
+            <div>
+                <button type="button" class="btn-acao" onclick="carregarRelatorio()">Gerar Relatório</button>
+            </div>
+        </div>
+
+        <table id="tabelaRelatorio">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Funcionário</th>
+                    <th>Matrícula</th>
+                    <th>Turno</th>
+                    <th>Primeira Entrada</th>
+                    <th>Última Saída / Status</th>
+                </tr>
+            </thead>
+            <tbody id="corpoRelatorio">
+                <tr><td colspan="6" style="text-align: center;">Selecione o período e clique em "Gerar Relatório".</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { supabase } from './services/supabase.js';
+
+        const hoje = new Date();
+        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        
+        document.getElementById('dataInicio').valueAsDate = primeiroDiaMes;
+        document.getElementById('dataFim').valueAsDate = hoje;
+
+        window.carregarRelatorio = async function() {
+            const dataInicioStr = document.getElementById('dataInicio').value;
+            const dataFimStr = document.getElementById('dataFim').value;
+
+            if (!dataInicioStr || !dataFimStr) {
+                alert('Selecione a data inicial e final.');
+                return;
+            }
+
+            const corpo = document.getElementById('corpoRelatorio');
+            corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando relatório...</td></tr>';
+
+            const inicio = new Date(dataInicioStr + 'T00:00:00');
+            const fim = new Date(dataFimStr + 'T23:59:59');
+
+            const { data: funcionarios, error: errFunc } = await supabase.from('funcionarios').select('*');
+            if (errFunc) {
+                alert('Erro ao buscar funcionários.');
+                console.error(errFunc);
+                return;
+            }
+
+            const { data: registros, error: errReg } = await supabase
+                .from('registros_ponto')
+                .select('*')
+                .gte('data_hora', inicio.toISOString())
+                .lte('data_hora', fim.toISOString())
+                .order('data_hora', { ascending: true });
+
+            if (errReg) {
+                alert('Erro ao buscar registros de ponto.');
+                console.error(errReg);
+                return;
+            }
+
+            if (!funcionarios || funcionarios.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum funcionário cadastrado.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            const mapaRegistros = {};
+            if (registros) {
+                registros.forEach(r => {
+                    const dataDia = r.data_hora.split('T')[0];
+                    const chave = `${dataDia}_${r.matricula}`;
+                    if (!mapaRegistros[chave]) {
+                        mapaRegistros[chave] = [];
+                    }
+                    mapaRegistros[chave].push(r);
+                });
+            }
+
+            let diaAtual = new Date(inicio);
+            let diasPeriodo = [];
+            while (diaAtual <= fim && diaAtual <= hoje) {
+                diasPeriodo.push(new Date(diaAtual));
+                diaAtual.setDate(diaAtual.getDate() + 1);
+            }
+
+            diasPeriodo.reverse();
+
+            let totalLinhas = 0;
+
+            diasPeriodo.forEach(dia => {
+                const dataIsoStr = dia.toISOString().split('T')[0];
+                const dataFormatada = dia.toLocaleDateString('pt-BR');
+
+                funcionarios.forEach(func => {
+                    const chave = `${dataIsoStr}_${func.matricula}`;
+                    const regsFuncDia = mapaRegistros[chave] || [];
+
+                    let entradaStr = '-';
+                    let saidaStr_status = '<span style="color: #dc3545; font-weight: bold;">Falta</span>';
+
+                    if (regsFuncDia.length > 0) {
+                        if (regsFuncDia[0].tipo === 'Atestado') {
+                            entradaStr = 'Atestado Médico';
+                            saidaStr_status = '<span style="color: #6f42c1; font-weight: bold;">Afastado</span>';
+                        } else {
+                            const primeiraEntrada = new Date(regsFuncDia[0].data_hora);
+                            entradaStr = primeiraEntrada.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+                            if (regsFuncDia.length % 2 === 0) {
+                                const ultimaSaida = new Date(regsFuncDia[regsFuncDia.length - 1].data_hora);
+                                saidaStr_status = ultimaSaida.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) + ' (Concluído)';
+                            } else {
+                                saidaStr_status = '<span style="color: #17a2b8; font-weight: bold;">Em aberto (Trabalhando)</span>';
+                            }
+                        }
+                    }
+
+                    html += `
+                        <tr>
+                            <td>${dataFormatada}</td>
+                            <td><strong>${func.nome}</strong></td>
+                            <td>${func.matricula}</td>
+                            <td>${func.turno || 'Manhã/Tarde'}</td>
+                            <td>${entradaStr}</td>
+                            <td>${saidaStr_status}</td>
+                        </tr>
+                    `;
+                    totalLinhas++;
+                });
+            });
+
+            if (totalLinhas === 0) {
+                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro encontrado para este período.</td></tr>';
+            } else {
+                corpo.innerHTML = html;
+            }
+        };
+    </script>
+</body>
+</html>
