@@ -11,6 +11,12 @@
         
         #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 4px solid #007bff; background: #000; }
         
+        /* Espelhamento corrigido da câmera (Remove o reflexo de espelho) */
+        #reader video {
+            transform: scaleX(-1);
+            -webkit-transform: scaleX(-1);
+        }
+        
         /* Área secreta de admin / tela cheia discreta no canto */
         .menu-secreto { position: absolute; top: 15px; left: 15px; display: flex; gap: 10px; opacity: 0.1; transition: opacity 0.3s; }
         .menu-secreto:hover { opacity: 1; } /* Só aparece bem se passar o mouse por cima do canto */
@@ -164,7 +170,6 @@
         // Função de Proteção por Senha para o Painel de Gestão
         window.tentarAcessarGestao = function() {
             const senha = prompt("Digite a senha de administrador:");
-            // Definição simples da senha de admin (pode alterar aqui se quiser, ex: '1234' ou 'admin')
             if (senha === "1234" || senha === "admin") {
                 window.location.href = "acompanhamento.html";
             } else if (senha !== null) {
