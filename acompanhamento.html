@@ -19,10 +19,21 @@
         
         .btn { padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
         .btn:hover { background: #218838; }
-        .btn-acao { padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-acao { padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 3px; }
         .btn-acao:hover { background: #0056b3; }
         .btn-atestado { background: #6f42c1; }
         .btn-atestado:hover { background: #5a32a3; }
+
+        /* Estilo do Menu Dropdown da Engrenagem */
+        .dropdown { position: relative; display: inline-block; }
+        .btn-engrenagem { background: #6c757d; }
+        .btn-engrenagem:hover { background: #5a6268; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
+        .dropdown-content button { color: black; padding: 10px 12px; text-decoration: none; display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer; font-size: 13px; }
+        .dropdown-content button:hover { background-color: #f1f1f1; }
+        .dropdown-content .btn-excluir-item { color: #dc3545; font-weight: bold; }
+        .dropdown-content .btn-excluir-item:hover { background-color: #f8d7da; }
+        .dropdown.show .dropdown-content { display: block; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
@@ -43,6 +54,9 @@
         .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .btn-cancelar { background: #6c757d; }
         .btn-cancelar:hover { background: #5a6268; }
+
+        /* Estilo do Modal de Relatório Individual */
+        .modal-relatorio { width: 600px; max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -130,6 +144,18 @@
         </div>
     </div>
 
+    <!-- Modal de Relatório Individual -->
+    <div id="modalRelatorio" class="modal-overlay">
+        <div class="modal-content modal-relatorio">
+            <h3 id="tituloModalRelatorio">Relatório Individual</h3>
+            <div id="conteudoRelatorioIndividual">Carregando...</div>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button type="button" class="btn btn-cancelar" onclick="fecharModalRelatorio()">Fechar</button>
+                <button type="button" class="btn" onclick="window.print()">Imprimir</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { supabase } from './services/supabase.js';
 
@@ -137,6 +163,35 @@
         inputData.valueAsDate = new Date();
 
         let funcionarioSelecionadoParaAjuste = null;
+
+        // Fechar dropdowns ao clicar fora
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.btn-engrenagem')) {
+                const dropdowns = document.getElementsByClassName("dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    let openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        });
+
+        window.toggleMenu = function(event, matricula) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`dropdown-${matricula}`);
+            const isOpen = dropdown.classList.contains('show');
+            
+            // Fecha todos os outros abertos
+            const dropdowns = document.getElementsByClassName("dropdown");
+            for (let i = 0; i < dropdowns.length; i++) {
+                dropdowns[i].classList.remove('show');
+            }
+
+            if (!isOpen) {
+                dropdown.classList.add('show');
+            }
+        };
 
         window.carregarDados = async function() {
             const dataSelecionadaStr = inputData.value;
@@ -226,6 +281,14 @@
                         <td>
                             <button class="btn-acao" onclick="abrirModalAjuste('${func.matricula}', '${func.nome}')">Ajustar</button>
                             <button class="btn-acao btn-atestado" onclick="lancarAtestado('${func.matricula}', '${func.nome}')">Atestado</button>
+                            
+                            <div class="dropdown" id="dropdown-${func.matricula}">
+                                <button class="btn-acao btn-engrenagem" onclick="toggleMenu(event, '${func.matricula}')">⚙️</button>
+                                <div class="dropdown-content">
+                                    <button onclick="abrirRelatorioIndividual('${func.matricula}', '${func.nome}')">📊 Relatório Individual</button>
+                                    <button class="btn-excluir-item" onclick="excluirFuncionario('${func.matricula}', '${func.nome}')">🗑️ Excluir Cadastro</button>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -282,6 +345,92 @@
             }
         };
 
+        // Excluir Funcionário (Apaga registros de ponto primeiro e depois o funcionário)
+        window.excluirFuncionario = async function(matricula, nome) {
+            const confirmar = confirm(`Tem certeza que deseja excluir o funcionário ${nome} (Matrícula: ${matricula})? Todos os registros de ponto dele também serão apagados.`);
+            if (!confirmar) return;
+
+            // 1. Apagar os registros de ponto vinculados à matrícula primeiro
+            const { error: errReg } = await supabase
+                .from('registros_ponto')
+                .delete()
+                .eq('matricula', matricula);
+
+            if (errReg) {
+                alert('Erro ao excluir os registros de ponto do funcionário: ' + errReg.message);
+                return;
+            }
+
+            // 2. Agora apagar o funcionário da tabela funcionarios
+            const { error: errFunc } = await supabase
+                .from('funcionarios')
+                .delete()
+                .eq('matricula', matricula);
+
+            if (errFunc) {
+                alert('Erro ao excluir funcionário: ' + errFunc.message);
+            } else {
+                alert('Funcionário e seus registros excluídos com sucesso!');
+                carregarDados();
+            }
+        };
+
+        // Abrir Modal de Relatório Individual
+        window.abrirRelatorioIndividual = async function(matricula, nome) {
+            document.getElementById('tituloModalRelatorio').innerText = `Relatório: ${nome} (Matrícula: ${matricula})`;
+            const containerRel = document.getElementById('conteudoRelatorioIndividual');
+            containerRel.innerHTML = 'Buscando histórico completo...';
+            document.getElementById('modalRelatorio').style.display = 'flex';
+
+            const { data: registros, error } = await supabase
+                .from('registros_ponto')
+                .select('*')
+                .eq('matricula', matricula)
+                .order('data_hora', { ascending: false });
+
+            if (error) {
+                containerRel.innerHTML = '<p style="color: red;">Erro ao carregar relatório.</p>';
+                return;
+            }
+
+            if (!registros || registros.length === 0) {
+                containerRel.innerHTML = '<p style="text-align: center; color: #666;">Nenhum registro de ponto encontrado para este funcionário.</p>';
+                return;
+            }
+
+            let html = `
+                <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr style="background: #f1f1f1;">
+                            <th style="padding: 8px; border: 1px solid #ddd;">Data e Hora</th>
+                            <th style="padding: 8px; border: 1px solid #ddd;">Tipo de Registro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            registros.forEach(r => {
+                const dataFormatada = new Date(r.data_hora).toLocaleString('pt-BR');
+                let corTipo = '#007bff';
+                if (r.tipo === 'Encerrado') corTipo = '#28a745';
+                if (r.tipo === 'Atestado') corTipo = '#6f42c1';
+
+                html += `
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${dataFormatada}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd; color: ${corTipo}; font-weight: bold;">${r.tipo}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            containerRel.innerHTML = html;
+        };
+
+        window.fecharModalRelatorio = function() {
+            document.getElementById('modalRelatorio').style.display = 'none';
+        };
+
         // Abrir Modal de Ajuste
         window.abrirModalAjuste = async function(matricula, nome) {
             funcionarioSelecionadoParaAjuste = { matricula, nome };
@@ -289,7 +438,6 @@
             document.getElementById('horaEntradaAjuste').value = '';
             document.getElementById('horaSaidaAjuste').value = '';
 
-            // Tenta buscar os horários já existentes do dia para pré-preencher (opcional)
             const dataSelecionadaStr = inputData.value;
             const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
             const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
@@ -330,7 +478,6 @@
             const horaEntrada = document.getElementById('horaEntradaAjuste').value;
             const horaSaida = document.getElementById('horaSaidaAjuste').value;
 
-            // Remove registros antigos do dia para substituir limpo pelos novos horários preenchidos
             const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
             const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
 
