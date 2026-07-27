@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>CheckPonto - Painel de Gestão e Escalas</title>
+    <title>CheckPonto - Painel de Gestão e Escalas Escolares</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1050px; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1100px; }
         h2 { text-align: center; color: #333; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         
@@ -29,6 +29,13 @@
         label { font-size: 12px; font-weight: bold; margin-bottom: 3px; color: #555; }
         input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         
+        /* Grade de Turnos por Dia da Semana */
+        .grade-semana { display: flex; flex-direction: column; gap: 8px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 4px; max-height: 220px; overflow-y: auto; }
+        .dia-linha { display: flex; justify-content: space-between; align-items: center; font-size: 13px; border-bottom: 1px solid #f1f1f1; padding-bottom: 5px; }
+        .dia-linha span { font-weight: bold; width: 80px; color: #333; }
+        .dia-checks { display: flex; gap: 10px; font-size: 11px; }
+        .dia-checks label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 2px; }
+
         .btn { padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
         .btn:hover { background: #218838; }
         .btn-acao { padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 3px; }
@@ -71,7 +78,7 @@
 
         /* Estilo dos Modais */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 380px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .modal-content h3 { margin-top: 0; color: #333; font-size: 18px; margin-bottom: 15px; text-align: center; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .btn-cancelar { background: #6c757d; }
@@ -87,8 +94,8 @@
             <a href="relatorio.html" class="btn-link">Relatórios e Impressão</a>
         </div>
         
-        <h2>Painel de Gestão e Escalas</h2>
-        <div class="subtitle">Cadastre funcionários com turnos flexíveis, audite pontos e acompanhe indicadores em tempo real</div>
+        <h2>Painel de Gestão - Escola (Turnos Flexíveis por Dia)</h2>
+        <div class="subtitle">Cadastre os turnos específicos por dia da semana, audite pontos e acompanhe indicadores em tempo real</div>
 
         <!-- Painel de Indicadores Clicáveis -->
         <div class="dashboard-cards">
@@ -119,34 +126,62 @@
         </div>
 
         <div class="painel-topo">
-            <!-- Bloco 1: Cadastrar Funcionário com Escala e Turno -->
+            <!-- Bloco 1: Cadastrar Funcionário com Turnos por Dia da Semana -->
             <div class="bloco">
-                <h3>Cadastrar Funcionário & Escala</h3>
+                <h3>Cadastrar Funcionário & Turnos da Semana</h3>
                 <form id="formFuncionario">
                     <div class="form-group">
                         <label>Nome Completo:</label>
-                        <input type="text" id="nomeFunc" required placeholder="Ex: Ana Souza">
+                        <input type="text" id="nomeFunc" required placeholder="Ex: Prof. Carlos">
                     </div>
                     <div class="form-group">
                         <label>Matrícula / ID do Crachá:</label>
-                        <input type="text" id="matFunc" required placeholder="Ex: 102030">
+                        <input type="text" id="matFunc" required placeholder="Ex: 202601">
                     </div>
                     <div class="form-group">
-                        <label>Modelo de Escala:</label>
-                        <select id="cadEscala" onchange="alternarCamposEscala()">
-                            <option value="Seg_Sex">Segunda a Sexta-feira (Comercial)</option>
-                            <option value="Escala_6x1">Escala 6x1 (Folga Rotativa)</option>
-                            <option value="Plantao_12x36">Plantão 12x36</option>
-                            <option value="Personalizado">Dias úteis específicos</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Turno de Entrada Padrão:</label>
-                        <select id="cadTurnoBase">
-                            <option value="Manhã (08:00)">Manhã (Entrada às 08:00)</option>
-                            <option value="Tarde (13:00)">Tarde (Entrada às 13:00)</option>
-                            <option value="Noite (19:00)">Noite (Entrada às 19:00)</option>
-                        </select>
+                        <label>Defina os turnos de cada dia:</label>
+                        <div class="grade-semana">
+                            <div class="dia-linha">
+                                <span>Segunda:</span>
+                                <div class="dia-checks">
+                                    <label><input type="checkbox" name="seg" value="Manhã" checked> Manhã</label>
+                                    <label><input type="checkbox" name="seg" value="Tarde"> Tarde</label>
+                                    <label><input type="checkbox" name="seg" value="Noite"> Noite</label>
+                                </div>
+                            </div>
+                            <div class="dia-linha">
+                                <span>Terça:</span>
+                                <div class="dia-checks">
+                                    <label><input type="checkbox" name="ter" value="Manhã" checked> Manhã</label>
+                                    <label><input type="checkbox" name="ter" value="Tarde"> Tarde</label>
+                                    <label><input type="checkbox" name="ter" value="Noite"> Noite</label>
+                                </div>
+                            </div>
+                            <div class="dia-linha">
+                                <span>Quarta:</span>
+                                <div class="dia-checks">
+                                    <label><input type="checkbox" name="qua" value="Manhã" checked> Manhã</label>
+                                    <label><input type="checkbox" name="qua" value="Tarde"> Tarde</label>
+                                    <label><input type="checkbox" name="qua" value="Noite"> Noite</label>
+                                </div>
+                            </div>
+                            <div class="dia-linha">
+                                <span>Quinta:</span>
+                                <div class="dia-checks">
+                                    <label><input type="checkbox" name="qui" value="Manhã" checked> Manhã</label>
+                                    <label><input type="checkbox" name="qui" value="Tarde"> Tarde</label>
+                                    <label><input type="checkbox" name="qui" value="Noite"> Noite</label>
+                                </div>
+                            </div>
+                            <div class="dia-linha">
+                                <span>Sexta:</span>
+                                <div class="dia-checks">
+                                    <label><input type="checkbox" name="sex" value="Manhã" checked> Manhã</label>
+                                    <label><input type="checkbox" name="sex" value="Tarde"> Tarde</label>
+                                    <label><input type="checkbox" name="sex" value="Noite"> Noite</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button type="submit" class="btn">Salvar Funcionário</button>
                 </form>
@@ -160,7 +195,7 @@
                     <input type="date" id="dataFiltro" onchange="carregarDados()">
                 </div>
                 <p style="font-size: 12px; color: #666; line-height: 1.4;">
-                    O sistema cruza automaticamente a escala de cada funcionário com o dia da semana selecionado para calcular presenças, atrasos e folgas programadas.
+                    O sistema identifica automaticamente o dia da semana escolhido (segunda a sexta) e verifica se o funcionário estava escalado para Manhã, Tarde ou Noite naquele dia exato.
                 </p>
             </div>
         </div>
@@ -182,7 +217,7 @@
                 <tr>
                     <th>Matrícula</th>
                     <th>Funcionário</th>
-                    <th>Escala & Turno</th>
+                    <th>Turno Escalado (para o dia)</th>
                     <th>Primeira Entrada</th>
                     <th>Última Saída / Status</th>
                     <th>Ações</th>
@@ -219,7 +254,7 @@
             <h3 id="tituloModalObs">Justificar Falta</h3>
             <div class="form-group">
                 <label>Motivo da Justificativa:</label>
-                <textarea id="textoObs" placeholder="Ex: Consulta médica, problema de transporte, etc..."></textarea>
+                <textarea id="textoObs" placeholder="Ex: Consulta médica, sem aula no horário, etc..."></textarea>
             </div>
             <div class="modal-buttons">
                 <button type="button" class="btn btn-cancelar" onclick="fecharModalObs()">Cancelar</button>
@@ -276,38 +311,29 @@
             }
         };
 
-        // Regra inteligente de verificação de escala e atraso baseada no dia da semana
-        function calcularStatusTurno(escala, turnoBase, dataSelecionadaStr, primeiraEntradaDate, temRegistros) {
-            const dataObj = new Date(dataSelecionadaStr + 'T00:00:00');
-            const diaSemana = dataObj.getDay(); // 0 = Domingo, 6 = Sábado
+        // Descobre os turnos do funcionário com base no dia da semana selecionado (1=Segunda ... 5=Sexta)
+        function obterTurnosDoDia(escalaObj, diaSemanaIndex) {
+            if (!escalaObj) return ['Manhã']; // fallback padrão
+            const diasChaves = ['', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+            const chave = diasChaves[diaSemanaIndex];
+            return escalaObj[chave] || [];
+        }
+
+        function verificarAtrasoEscalaEscolar(turnosDoDia, primeiraEntradaDate) {
+            if (!primeiraEntradaDate || !turnosDoDia || turnosDoDia.length === 0) return false;
             
-            let limiteHoraDecimal = 8.25; // Padrão Manhã 08:15
-            if (turnoBase && turnoBase.includes('Tarde')) limiteHoraDecimal = 13.25; // 13:15
-            if (turnoBase && turnoBase.includes('Noite')) limiteHoraDecimal = 19.25; // 19:15
-
-            // Validação de Folga por Escala
-            let ehFolga = false;
-            if (escala === 'Seg_Sex' && (diaSemana === 0 || diaSemana === 6)) {
-                ehFolga = true;
-            }
-
-            if (ehFolga && !temRegistros) {
-                return { status: 'FOLGA', textoSaida: '<span style="color: #6c757d; font-weight: bold;">Folga Programada</span>' };
-            }
-
-            if (!temRegistros) {
-                return { status: 'FALTA', textoSaida: '<span style="color: #dc3545; font-weight: bold;">Falta</span>' };
-            }
-
             const hora = primeiraEntradaDate.getHours();
             const minuto = primeiraEntradaDate.getMinutes();
             const horaDecimal = hora + (minuto / 60);
 
-            if (horaDecimal > limiteHoraDecimal) {
-                return { status: 'ATRASADO', comAtraso: true };
-            }
+            // Pega o primeiro turno escalado do dia para cobrar a entrada correta
+            const primeiroTurno = turnosDoDia[0];
+            let limite = 8.25; // Manhã (08:15)
+            if (primeiroTurno === 'Tarde') limite = 13.15; // 13:15
+            if (primeiroTurno === 'Noite') limite = 19.15; // 19:15
 
-            return { status: 'CONCLUIDO', comAtraso: false };
+            if (horaDecimal > limite) return primeiroTurno;
+            return false;
         }
 
         window.filtrarStatus = function(status) {
@@ -341,6 +367,9 @@
 
             const corpo = document.getElementById('corpoTabela');
             corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Buscando registros...</td></tr>';
+
+            const dataObj = new Date(dataSelecionadaStr + 'T00:00:00');
+            const diaSemanaIndex = dataObj.getDay(); // 0=Domingo, 1=Segunda ... 5=Sexta, 6=Sábado
 
             const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
             const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
@@ -384,10 +413,39 @@
                 const regs = regsPorMatricula[func.matricula] || [];
                 let entradaStr = '-';
                 let saidaStr = '';
-                const escalaFunc = func.escala || 'Seg_Sex';
-                const turnoFunc = func.turno || 'Manhã (08:00)';
+                
+                // func.escala armazena o JSON com os turnos por dia da semana
+                let escalaObj = {};
+                try {
+                    escalaObj = typeof func.escala === 'string' ? JSON.parse(func.escala) : (func.escala || { seg: ['Manhã'], ter: ['Manhã'], qua: ['Manhã'], qui: ['Manhã'], sex: ['Manhã'] });
+                } catch(e) {
+                    escalaObj = { seg: ['Manhã'], ter: ['Manhã'], qua: ['Manhã'], qui: ['Manhã'], sex: ['Manhã'] };
+                }
+
+                const turnosDoDia = obterTurnosDoDia(escalaObj, diaSemanaIndex);
                 let statusCalculado = 'FALTA';
                 let horasTrabTexto = '';
+
+                // Se sábado ou domingo e não tem turnos escalados
+                if ((diaSemanaIndex === 0 || diaSemanaIndex === 6) && turnosDoDia.length === 0) {
+                    return {
+                        ...func,
+                        turnosDoDiaStr: 'Fim de semana (Folga)',
+                        entradaStr: '-',
+                        saidaStr: '<span style="color: #6c757d; font-weight: bold;">Folga</span>',
+                        statusCalculado: 'FOLGA'
+                    };
+                }
+
+                if (turnosDoDia.length === 0) {
+                    return {
+                        ...func,
+                        turnosDoDiaStr: 'Sem expediente neste dia',
+                        entradaStr: '-',
+                        saidaStr: '<span style="color: #6c757d; font-weight: bold;">Sem Expediente</span>',
+                        statusCalculado: 'FOLGA'
+                    };
+                }
 
                 if (regs.length > 0) {
                     const notaFalta = regs.find(r => r.tipo.startsWith('Nota:'));
@@ -405,9 +463,9 @@
                         const primeiraEntradaObj = new Date(regs[0].data_hora);
                         const horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                         
-                        const avaliacaoTurno = calcularStatusTurno(escalaFunc, turnoFunc, dataSelecionadaStr, primeiraEntradaObj, true);
+                        const atrasoDetectado = verificarAtrasoEscalaEscolar(turnosDoDia, primeiraEntradaObj);
                         
-                        if (avaliacaoTurno.comAtraso) {
+                        if (atrasoDetectado) {
                             entradaStr = `${horaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>`;
                             statusCalculado = 'ATRASADO';
                         } else {
@@ -424,48 +482,33 @@
                             const horas = Math.floor(diffHoras);
                             const minutos = Math.round((diffHoras - horas) * 60);
                             
-                            if (diffHoras > 8) {
-                                const hExtras = horas - 8;
-                                horasTrabTexto = `(${horas}h ${minutos}m - <span style="color: #28a745; font-weight: bold;">+${hExtras}h ${minutos}m Extra</span>)`;
-                            } else {
-                                horasTrabTexto = `(${horas}h ${minutos}m)`;
-                            }
-
-                            if (diffHoras >= 8) {
-                                saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span> ${horasTrabTexto}`;
-                            } else {
-                                saidaStr = `${horaSaidaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Saída Antecipada</span> ${horasTrabTexto}`;
-                            }
+                            horasTrabTexto = `(${horas}h ${minutos}m)`;
+                            saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span> ${horasTrabTexto}`;
                         } else {
                             saidaStr = '<span style="color: #17a2b8; font-weight: bold;">Trabalhando (Em aberto)</span>';
                             statusCalculado = 'TRABALHANDO';
                         }
                     }
                 } else {
-                    const avaliacaoFolga = calcularStatusTurno(escalaFunc, turnoFunc, dataSelecionadaStr, null, false);
-                    if (avaliacaoFolga.status === 'FOLGA') {
-                        entradaStr = '-';
-                        saidaStr = avaliacaoFolga.textoSaida;
-                        statusCalculado = 'FOLGA';
-                    } else {
-                        saidaStr = '<span style="color: #dc3545; font-weight: bold;">Falta</span>';
-                        statusCalculado = 'FALTA';
-                    }
+                    saidaStr = '<span style="color: #dc3545; font-weight: bold;">Falta</span>';
+                    statusCalculado = 'FALTA';
                 }
 
                 return {
                     ...func,
+                    turnosDoDiaStr: turnosDoDia.join(' e '),
                     entradaStr, saidaStr,
                     statusCalculado
                 };
             });
 
-            let countTotal = listaFuncionariosCache.filter(f => f.statusCalculado !== 'FOLGA').length;
-            let countTrabalhando = listaFuncionariosCache.filter(f => f.statusCalculado === 'TRABALHANDO').length;
-            let countConcluidos = listaFuncionariosCache.filter(f => f.statusCalculado === 'CONCLUIDO').length;
-            let countAtrasados = listaFuncionariosCache.filter(f => f.statusCalculado === 'ATRASADO').length;
-            let countFaltas = listaFuncionariosCache.filter(f => f.statusCalculado === 'FALTA').length;
-            let countAtestados = listaFuncionariosCache.filter(f => f.statusCalculado === 'ATESTADO').length;
+            let ativosValidos = listaFuncionariosCache.filter(f => f.statusCalculado !== 'FOLGA');
+            let countTotal = ativosValidos.length;
+            let countTrabalhando = ativosValidos.filter(f => f.statusCalculado === 'TRABALHANDO').length;
+            let countConcluidos = ativosValidos.filter(f => f.statusCalculado === 'CONCLUIDO').length;
+            let countAtrasados = ativosValidos.filter(f => f.statusCalculado === 'ATRASADO').length;
+            let countFaltas = ativosValidos.filter(f => f.statusCalculado === 'FALTA').length;
+            let countAtestados = ativosValidos.filter(f => f.statusCalculado === 'ATESTADO').length;
 
             atualizarIndicadores(countTotal, countTrabalhando, countConcluidos, countAtrasados, countFaltas, countAtestados);
             renderizarTabela();
@@ -493,18 +536,12 @@
                     botaoJustificarHtml = `<button class="btn-acao btn-justificar" onclick="abrirModalObs('${func.matricula}', '${func.nome}')">Justificar</button>`;
                 }
 
-                let escalaFormatada = func.escala || 'Seg_Sex';
-                if (escalaFormatada === 'Seg_Sex') escalaFormatada = 'Seg a Sex (Comercial)';
-                if (escalaFormatada === 'Escala_6x1') escalaFormatada = 'Escala 6x1';
-                if (escalaFormatada === 'Plantao_12x36') escalaFormatada = 'Plantão 12x36';
-
                 html += `
                     <tr>
                         <td>${func.matricula}</td>
                         <td><strong>${func.nome}</strong></td>
                         <td>
-                            <span class="escala-badge">${escalaFormatada}</span><br>
-                            <span style="font-size: 11px; color: #666;">${func.turno || 'Manhã'}</span>
+                            <span class="escala-badge">📅 ${func.turnosDoDiaStr}</span>
                         </td>
                         <td>${func.entradaStr}</td>
                         <td>${func.saidaStr}</td>
@@ -542,11 +579,12 @@
         }
 
         window.exportarCSV = function() {
-            let csv = 'Matricula;Funcionario;Escala;Turno;Primeira Entrada;Status\n';
+            let csv = 'Matricula;Funcionario;TurnoDoDia;Primeira Entrada;Status\n';
             listaFuncionariosCache.forEach(f => {
+                if(f.statusCalculado === 'FOLGA') return;
                 let statusLimpo = f.saidaStr.replace(/<[^>]*>?/gm, '');
                 let entradaLimpa = f.entradaStr.replace(/<[^>]*>?/gm, '');
-                csv += `${f.matricula};${f.nome};${f.escala || ''};${f.turno || ''};${entradaLimpa};${statusLimpo}\n`;
+                csv += `${f.matricula};${f.nome};${f.turnosDoDiaStr};${entradaLimpa};${statusLimpo}\n`;
             });
 
             const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -563,10 +601,23 @@
             e.preventDefault();
             const nome = document.getElementById('nomeFunc').value;
             const matricula = document.getElementById('matFunc').value;
-            const escala = document.getElementById('cadEscala').value;
-            const turno = document.getElementById('cadTurnoBase').value;
 
-            const { error } = await supabase.from('funcionarios').insert([{ nome, matricula, escala, turno }]);
+            // Coleta os turnos marcados por dia na grade semanal
+            let escalaObj = {};
+            ['seg', 'ter', 'qua', 'qui', 'sex'].forEach(dia => {
+                const checkboxes = document.querySelectorAll(`input[name="${dia}"]:checked`);
+                let turnosDia = [];
+                checkboxes.forEach(cb => turnosDia.push(cb.value));
+                escalaObj[dia] = turnosDia;
+            });
+
+            const { error } = await supabase.from('funcionarios').insert([{ 
+                nome, 
+                matricula, 
+                escala: JSON.stringify(escalaObj),
+                turno: 'Flexível Escola'
+            }]);
+
             if (error) {
                 alert('Erro ao cadastrar funcionário: ' + error.message);
             } else {
