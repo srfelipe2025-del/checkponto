@@ -2,10 +2,24 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>CheckPonto - Painel de Gestão e Escalas Escolares</title>
+    <title>CheckPonto - Escola Municipal Emiliano Zapata</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1100px; }
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        /* Tela de Login Inicial */
+        #telaLogin { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 380px; text-align: center; }
+        #telaLogin h2 { color: #007bff; margin-bottom: 5px; font-size: 22px; }
+        #telaLogin .escola-sub { font-size: 14px; font-weight: bold; color: #444; margin-bottom: 25px; background: #e7f1ff; padding: 8px; border-radius: 5px; }
+        .login-group { margin-bottom: 15px; text-align: left; display: flex; flex-direction: column; }
+        .login-group label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .login-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .btn-login { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; }
+        .btn-login:hover { background: #0056b3; }
+        .erro-login { color: #dc3545; font-size: 12px; margin-top: 10px; display: none; }
+
+        /* Container Principal do Painel (Fica oculto até logar) */
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1100px; display: none; }
+        
         h2 { text-align: center; color: #333; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         
@@ -88,14 +102,34 @@
     </style>
 </head>
 <body>
-    <div class="container">
+
+    <!-- TELA DE LOGIN COM NOME DA ESCOLA -->
+    <div id="telaLogin">
+        <h2>CheckPonto</h2>
+        <div class="escola-sub">Escola Municipal Emiliano Zapata</div>
+        <form id="formLoginGestor">
+            <div class="login-group">
+                <label>Usuário:</label>
+                <input type="text" id="usuarioLogin" required placeholder="Digite seu usuário">
+            </div>
+            <div class="login-group">
+                <label>Senha:</label>
+                <input type="password" id="senhaLogin" required placeholder="Digite sua senha">
+            </div>
+            <button type="submit" class="btn-login">Entrar no Sistema</button>
+            <div id="erroLogin" class="erro-login">Usuário ou senha incorretos!</div>
+        </form>
+    </div>
+
+    <!-- PAINEL PRINCIPAL (APÓS LOGIN) -->
+    <div class="container" id="painelPrincipal">
         <div class="menu-nav">
             <a href="index.html" class="btn-link">← Ir para o Leitor (Portaria)</a>
             <a href="relatorio.html" class="btn-link">Relatórios e Impressão</a>
         </div>
         
-        <h2>Painel de Gestão - Escola (Turnos Flexíveis por Dia)</h2>
-        <div class="subtitle">Cadastre os turnos específicos por dia da semana, audite pontos e acompanhe indicadores em tempo real</div>
+        <h2>Painel de Gestão - Escola Municipal Emiliano Zapata</h2>
+        <div class="subtitle">Turnos flexíveis por dia da semana, auditoria de ponto e indicadores em tempo real</div>
 
         <!-- Painel de Indicadores Clicáveis -->
         <div class="dashboard-cards">
@@ -278,6 +312,25 @@
     <script type="module">
         import { supabase } from './services/supabase.js';
 
+        // Defina aqui o usuário e a senha de acesso rápido para a escola
+        const USUARIO_VALIDO = "zapata";
+        const SENHA_VALIDA = "123456";
+
+        document.getElementById('formLoginGestor').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const u = document.getElementById('usuarioLogin').value;
+            const s = document.getElementById('senhaLogin').value;
+
+            if (u === USUARIO_VALIDO && s === SENHA_VALIDA) {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+                document.body.style.alignItems = 'flex-start'; // Ajusta alinhamento para o painel grande
+                carregarDados();
+            } else {
+                document.getElementById('erroLogin').style.display = 'block';
+            }
+        });
+
         const inputData = document.getElementById('dataFiltro');
         inputData.valueAsDate = new Date();
         inputData.max = new Date().toISOString().split('T')[0];
@@ -311,9 +364,8 @@
             }
         };
 
-        // Descobre os turnos do funcionário com base no dia da semana selecionado (1=Segunda ... 5=Sexta)
         function obterTurnosDoDia(escalaObj, diaSemanaIndex) {
-            if (!escalaObj) return ['Manhã']; // fallback padrão
+            if (!escalaObj) return ['Manhã'];
             const diasChaves = ['', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
             const chave = diasChaves[diaSemanaIndex];
             return escalaObj[chave] || [];
@@ -326,11 +378,10 @@
             const minuto = primeiraEntradaDate.getMinutes();
             const horaDecimal = hora + (minuto / 60);
 
-            // Pega o primeiro turno escalado do dia para cobrar a entrada correta
             const primeiroTurno = turnosDoDia[0];
-            let limite = 8.25; // Manhã (08:15)
-            if (primeiroTurno === 'Tarde') limite = 13.15; // 13:15
-            if (primeiroTurno === 'Noite') limite = 19.15; // 19:15
+            let limite = 8.25; 
+            if (primeiroTurno === 'Tarde') limite = 13.15; 
+            if (primeiroTurno === 'Noite') limite = 19.15; 
 
             if (horaDecimal > limite) return primeiroTurno;
             return false;
@@ -369,7 +420,7 @@
             corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Buscando registros...</td></tr>';
 
             const dataObj = new Date(dataSelecionadaStr + 'T00:00:00');
-            const diaSemanaIndex = dataObj.getDay(); // 0=Domingo, 1=Segunda ... 5=Sexta, 6=Sábado
+            const diaSemanaIndex = dataObj.getDay(); 
 
             const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
             const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
@@ -414,7 +465,6 @@
                 let entradaStr = '-';
                 let saidaStr = '';
                 
-                // func.escala armazena o JSON com os turnos por dia da semana
                 let escalaObj = {};
                 try {
                     escalaObj = typeof func.escala === 'string' ? JSON.parse(func.escala) : (func.escala || { seg: ['Manhã'], ter: ['Manhã'], qua: ['Manhã'], qui: ['Manhã'], sex: ['Manhã'] });
@@ -426,7 +476,6 @@
                 let statusCalculado = 'FALTA';
                 let horasTrabTexto = '';
 
-                // Se sábado ou domingo e não tem turnos escalados
                 if ((diaSemanaIndex === 0 || diaSemanaIndex === 6) && turnosDoDia.length === 0) {
                     return {
                         ...func,
@@ -602,7 +651,6 @@
             const nome = document.getElementById('nomeFunc').value;
             const matricula = document.getElementById('matFunc').value;
 
-            // Coleta os turnos marcados por dia na grade semanal
             let escalaObj = {};
             ['seg', 'ter', 'qua', 'qui', 'sex'].forEach(dia => {
                 const checkboxes = document.querySelectorAll(`input[name="${dia}"]:checked`);
@@ -784,15 +832,6 @@
             fecharModalObs();
             carregarDados();
         };
-
-        supabase
-            .channel('tabela-registros-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_ponto' }, () => {
-                carregarDados();
-            })
-            .subscribe();
-
-        carregarDados();
     </script>
 </body>
 </html>
