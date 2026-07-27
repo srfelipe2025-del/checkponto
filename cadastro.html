@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>CheckPonto - Gerenciamento de Funcionários</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: #2a2a2a; padding: 30px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #444; }
+        h2 { margin-top: 0; text-align: center; color: #007bff; font-size: 24px; }
+        label { display: block; margin-bottom: 8px; font-size: 14px; color: #ccc; }
+        input { width: 100%; padding: 10px; margin-bottom: 20px; background: #111; border: 1px solid #555; color: white; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        input:focus { border-color: #007bff; outline: none; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0056b3; }
+        .voltar { display: block; text-align: center; margin-top: 15px; color: #aaa; text-decoration: none; font-size: 14px; }
+        .voltar:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Cadastrar Funcionário</h2>
+        <form id="formFuncionario">
+            <label for="matricula">Matrícula (Crachá / QR Code):</label>
+            <input type="text" id="matricula" required placeholder="Ex: 1234">
+
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" required placeholder="Ex: Edilson Felipe">
+
+            <!-- Botão com o texto exato solicitado -->
+            <button type="submit" id="btnSalvar">Salvar Funcionário</button>
+        </form>
+        <a href="acompanhamento.html" class="voltar">← Voltar para o Painel</a>
+    </div>
+
+    <!-- Script de conexão com Supabase e lógica de salvamento + abertura da carteirinha -->
+    <script type="module">
+        import { supabase } from './services/supabase.js';
+
+        const form = document.getElementById('formFuncionario');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const matricula = document.getElementById('matricula').value.trim();
+            const nome = document.getElementById('nome').value.trim();
+            const btn = document.getElementById('btnSalvar');
+
+            btn.innerText = "Salvando...";
+            btn.disabled = true;
+
+            // 1. Salva os dados na tabela 'funcionarios' do Supabase
+            const { error } = await supabase
+                .from('funcionarios')
+                .insert([{ matricula: matricula, nome: nome }]);
+
+            if (error) {
+                alert("Erro ao salvar funcionário: " + error.message);
+                btn.innerText = "Salvar Funcionário";
+                btn.disabled = false;
+                return;
+            }
+
+            alert("Funcionário salvo com sucesso!");
+
+            // 2. DISPARA AUTOMATICAMENTE: Abre a carteirinha em uma nova aba pronta para imprimir
+            window.open(`carteirinha.html?matricula=${matricula}`, '_blank');
+
+            // Limpa o formulário e restaura o botão
+            form.reset();
+            btn.innerText = "Salvar Funcionário";
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>
