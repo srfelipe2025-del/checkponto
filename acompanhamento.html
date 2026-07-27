@@ -62,6 +62,8 @@
         .btn-justificar:hover { background: #c69500; }
         .btn-exportar { background: #17a2b8; width: auto; margin-top: 0; font-size: 13px; padding: 6px 12px; display: flex; align-items: center; gap: 5px; }
         .btn-exportar:hover { background: #138496; }
+        .btn-sair { background: #dc3545; padding: 8px 12px; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: bold; }
+        .btn-sair:hover { background: #c82333; }
 
         /* Barra de Pesquisa e Filtro Ativo */
         .tabela-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -86,7 +88,8 @@
         th { background-color: #343a40; color: white; }
         tr:hover { background-color: #f1f1f1; }
         
-        .menu-nav { margin-bottom: 20px; display: flex; gap: 10px; }
+        .menu-nav { margin-bottom: 20px; display: flex; gap: 10px; justify-content: space-between; align-items: center; }
+        .menu-nav-links { display: flex; gap: 10px; }
         .btn-link { padding: 8px 12px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; }
         .btn-link:hover { background: #5a6268; }
 
@@ -125,8 +128,11 @@
     <!-- PAINEL PRINCIPAL (APÓS LOGIN) -->
     <div class="container" id="painelPrincipal">
         <div class="menu-nav">
-            <a href="index.html" class="btn-link">← Ir para o Leitor (Portaria)</a>
-            <a href="relatorio.html" class="btn-link">Relatórios e Impressão</a>
+            <div class="menu-nav-links">
+                <a href="index.html" class="btn-link">← Ir para o Leitor (Portaria)</a>
+                <a href="relatorio.html" class="btn-link">Relatórios e Impressão</a>
+            </div>
+            <button class="btn-sair" onclick="fazerLogout()">Sair do Sistema</button>
         </div>
         
         <!-- Cabeçalho Principal (Sem moldura de brasão) -->
@@ -321,12 +327,24 @@
         const USUARIO_VALIDO = "pontoemez";
         const SENHA_VALIDA = "emez2026";
 
+        // Verifica ao carregar a página se já estava logado
+        window.addEventListener('DOMContentLoaded', () => {
+            const logado = localStorage.getItem('gestor_logado_emez');
+            if (logado === 'true') {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+                document.body.style.alignItems = 'flex-start';
+                carregarDados();
+            }
+        });
+
         document.getElementById('formLoginGestor').addEventListener('submit', function(e) {
             e.preventDefault();
             const u = document.getElementById('usuarioLogin').value;
             const s = document.getElementById('senhaLogin').value;
 
             if (u === USUARIO_VALIDO && s === SENHA_VALIDA) {
+                localStorage.setItem('gestor_logado_emez', 'true'); // Salva a sessão
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
                 document.body.style.alignItems = 'flex-start';
@@ -335,6 +353,11 @@
                 document.getElementById('erroLogin').style.display = 'block';
             }
         });
+
+        window.fazerLogout = function() {
+            localStorage.removeItem('gestor_logado_emez'); // Apaga a sessão
+            location.reload(); // Recarrega para voltar à tela de login
+        };
 
         const inputData = document.getElementById('dataFiltro');
         inputData.valueAsDate = new Date();
