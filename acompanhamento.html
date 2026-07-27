@@ -6,7 +6,7 @@
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        /* Tela de Login Inicial (Sem o nome da escola antes de logar) */
+        /* Tela de Login Inicial */
         #telaLogin { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 380px; text-align: center; }
         #telaLogin h2 { color: #007bff; margin-bottom: 25px; font-size: 24px; }
         .login-group { margin-bottom: 15px; text-align: left; display: flex; flex-direction: column; }
@@ -19,8 +19,17 @@
         /* Container Principal do Painel (Fica oculto até logar) */
         .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1100px; display: none; }
         
-        h2 { text-align: center; color: #333; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
+        /* Cabeçalho do Painel com Moldura para Brasão/Foto */
+        .painel-cabecalho-principal { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #eaeaea; padding-bottom: 15px; }
+        .moldura-brasao { width: 100px; height: 100px; border: 2px dashed #007bff; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8f9fa; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; }
+        .moldura-brasao:hover { background: #e2e6ea; }
+        .moldura-brasao img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; display: none; }
+        .moldura-brasao span { font-size: 10px; color: #666; text-align: center; padding: 5px; font-weight: bold; }
+        .moldura-input-file { display: none; }
+        
+        .titulo-container { flex: 1; }
+        h2 { text-align: left; color: #333; margin: 0 0 5px 0; }
+        .subtitle { text-align: left; color: #666; margin: 0; font-size: 14px; }
         
         /* Estilo do Dashboard de Indicadores Clicáveis */
         .dashboard-cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
@@ -102,7 +111,7 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN INICIAL (Sem identificar a escola ainda) -->
+    <!-- TELA DE LOGIN INICIAL -->
     <div id="telaLogin">
         <h2>CheckPonto</h2>
         <form id="formLoginGestor">
@@ -119,15 +128,25 @@
         </form>
     </div>
 
-    <!-- PAINEL PRINCIPAL (APÓS LOGIN - Mostra a escola e os dados) -->
+    <!-- PAINEL PRINCIPAL (APÓS LOGIN) -->
     <div class="container" id="painelPrincipal">
         <div class="menu-nav">
             <a href="index.html" class="btn-link">← Ir para o Leitor (Portaria)</a>
             <a href="relatorio.html" class="btn-link">Relatórios e Impressão</a>
         </div>
         
-        <h2>Painel de Gestão - Escola Municipal Emiliano Zapata</h2>
-        <div class="subtitle">Turnos flexíveis por dia da semana, auditoria de ponto e indicadores em tempo real</div>
+        <!-- Cabeçalho com Moldura Lateral Interativa para Brasão ou Foto -->
+        <div class="painel-cabecalho-principal">
+            <div class="moldura-brasao" onclick="document.getElementById('inputArquivoBrasao').click()" title="Clique para alterar a imagem/brasão">
+                <img id="imgBrasaoPreview" src="" alt="Brasão">
+                <span id="textoMoldura">🖼️ Inserir Brasão/Foto</span>
+                <input type="file" id="inputArquivoBrasao" class="moldura-input-file" accept="image/*" onchange="carregarBrasao(event)">
+            </div>
+            <div class="titulo-container">
+                <h2>Painel de Gestão - Escola Municipal Emiliano Zapata</h2>
+                <div class="subtitle">Turnos flexíveis por dia da semana, auditoria de ponto e indicadores em tempo real</div>
+            </div>
+        </div>
 
         <!-- Painel de Indicadores Clicáveis -->
         <div class="dashboard-cards">
@@ -310,7 +329,6 @@
     <script type="module">
         import { supabase } from './services/supabase.js';
 
-        // Credenciais atualizadas
         const USUARIO_VALIDO = "pontoemez";
         const SENHA_VALIDA = "emez2026";
 
@@ -322,7 +340,7 @@
             if (u === USUARIO_VALIDO && s === SENHA_VALIDA) {
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
-                document.body.style.alignItems = 'flex-start'; // Ajusta alinhamento para o painel grande
+                document.body.style.alignItems = 'flex-start';
                 carregarDados();
             } else {
                 document.getElementById('erroLogin').style.display = 'block';
@@ -337,6 +355,22 @@
         let funcionarioSelecionadoParaObs = null;
         let listaFuncionariosCache = [];
         let filtroAtual = 'TODOS';
+
+        // Função para carregar e exibir a imagem do brasão localmente
+        window.carregarBrasao = function(event) {
+            const arquivo = event.target.files[0];
+            if (arquivo) {
+                const leitor = new FileReader();
+                leitor.onload = function(e) {
+                    const img = document.getElementById('imgBrasaoPreview');
+                    const texto = document.getElementById('textoMoldura');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    texto.style.display = 'none';
+                }
+                leitor.readAsDataURL(arquivo);
+            }
+        };
 
         window.addEventListener('click', function(e) {
             if (!e.target.matches('.btn-engrenagem')) {
