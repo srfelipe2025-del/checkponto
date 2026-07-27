@@ -5,7 +5,7 @@
     <title>CheckPonto - Painel de Gestão</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1000px; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1050px; }
         h2 { text-align: center; color: #333; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         
@@ -35,12 +35,15 @@
         .btn-acao:hover { background: #0056b3; }
         .btn-atestado { background: #6f42c1; }
         .btn-atestado:hover { background: #5a32a3; }
-        .btn-obs { background: #17a2b8; }
-        .btn-obs:hover { background: #138496; }
+        .btn-justificar { background: #e0a800; color: #fff; }
+        .btn-justificar:hover { background: #c69500; }
+        .btn-exportar { background: #17a2b8; width: auto; margin-top: 0; font-size: 13px; padding: 6px 12px; display: flex; align-items: center; gap: 5px; }
+        .btn-exportar:hover { background: #138496; }
 
         /* Barra de Pesquisa e Filtro Ativo */
         .tabela-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .input-busca { padding: 8px; width: 250px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .tabela-acoes-topo { display: flex; align-items: center; gap: 10px; }
+        .input-busca { padding: 8px; width: 220px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
         .filtro-ativo-info { font-size: 13px; color: #007bff; font-weight: bold; display: none; align-items: center; gap: 5px; }
         .btn-limpar-filtro { background: none; border: none; color: #dc3545; cursor: pointer; font-weight: bold; font-size: 12px; text-decoration: underline; }
 
@@ -156,12 +159,13 @@
 
         <div class="tabela-cabecalho">
             <h3 style="margin: 0;">Funcionários e Registros do Dia</h3>
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="tabela-acoes-topo">
                 <div id="filtroAtivoInfo" class="filtro-ativo-info">
                     Filtrando por: <span id="nomeFiltroAtivo"></span>
                     <button class="btn-limpar-filtro" onclick="filtrarStatus('TODOS')">(Mostrar todos)</button>
                 </div>
-                <input type="text" id="inputBusca" class="input-busca" placeholder="🔍 Buscar por nome ou matrícula..." onkeyup="filtrarTabelaBusca()">
+                <input type="text" id="inputBusca" class="input-busca" placeholder="🔍 Buscar nome/matrícula..." onkeyup="filtrarTabelaBusca()">
+                <button class="btn btn-exportar" onclick="exportarCSV()">📥 Exportar CSV</button>
             </div>
         </div>
 
@@ -201,17 +205,17 @@
         </div>
     </div>
 
-    <!-- Modal de Observação / Justificativa -->
+    <!-- Modal de Justificativa de Falta -->
     <div id="modalObs" class="modal-overlay">
         <div class="modal-content">
-            <h3 id="tituloModalObs">Adicionar Observação</h3>
+            <h3 id="tituloModalObs">Justificar Falta</h3>
             <div class="form-group">
-                <label>Justificativa / Nota do Dia:</label>
-                <textarea id="textoObs" placeholder="Ex: Falta justificada por motivo particular, trabalho externo autorizado..."></textarea>
+                <label>Motivo da Justificativa:</label>
+                <textarea id="textoObs" placeholder="Ex: Consulta médica, problema de transporte, etc..."></textarea>
             </div>
             <div class="modal-buttons">
                 <button type="button" class="btn btn-cancelar" onclick="fecharModalObs()">Cancelar</button>
-                <button type="button" class="btn" onclick="salvarObservacao()">Salvar Nota</button>
+                <button type="button" class="btn" onclick="salvarObservacao()">Salvar Justificativa</button>
             </div>
         </div>
     </div>
@@ -233,6 +237,7 @@
 
         const inputData = document.getElementById('dataFiltro');
         inputData.valueAsDate = new Date();
+        inputData.max = new Date().toISOString().split('T')[0];
 
         let funcionarioSelecionadoParaAjuste = null;
         let funcionarioSelecionadoParaObs = null;
@@ -280,7 +285,6 @@
         window.filtrarStatus = function(status) {
             filtroAtual = status;
             
-            // Destacar card selecionado
             document.querySelectorAll('.card-stat').forEach(c => c.classList.remove('ativo'));
             const cardMap = {
                 'TODOS': 'card-todos',
@@ -292,7 +296,6 @@
             };
             if(cardMap[status]) document.getElementById(cardMap[status]).classList.add('ativo');
 
-            // Exibir info do filtro ativo
             const infoDiv = document.getElementById('filtroAtivoInfo');
             if (status !== 'TODOS') {
                 infoDiv.style.display = 'flex';
@@ -362,11 +365,17 @@
                 const isNoite = turnoAtual.includes('Noite');
 
                 if (regs.length > 0) {
+                    const notaFalta = regs.find(r => r.tipo.startsWith('Nota:'));
+                    if (notaFalta) {
+                        const textoJustificativa = notaFalta.tipo.replace('Nota: ', '');
+                        saidaStr = `<span style="color: #d39e00; font-weight: bold;" title="${textoJustificativa}">Falta (Justificada)</span>`;
+                    }
+
                     if (regs[0].tipo === 'Atestado') {
                         entradaStr = 'Atestado Médico';
                         saidaStr = '<span style="color: #6f42c1; font-weight: bold;">Afastado (Atestado)</span>';
                         statusCalculado = 'ATESTADO';
-                    } else {
+                    } else if (!regs[0].tipo.startsWith('Nota:')) {
                         const primeiraEntradaObj = new Date(regs[0].data_hora);
                         const horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                         
@@ -387,12 +396,18 @@
                             const diffHoras = diffMs / (1000 * 60 * 60);
                             const horas = Math.floor(diffHoras);
                             const minutos = Math.round((diffHoras - horas) * 60);
-                            horasTrabTexto = `(${horas}h ${minutos}m)`;
+                            
+                            if (diffHoras > 8) {
+                                const hExtras = horas - 8;
+                                horasTrabTexto = `(${horas}h ${minutos}m - <span style="color: #28a745; font-weight: bold;">+${hExtras}h ${minutos}m Extra</span>)`;
+                            } else {
+                                horasTrabTexto = `(${horas}h ${minutos}m)`;
+                            }
 
                             if (diffHoras >= 8) {
                                 saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span> ${horasTrabTexto}`;
                             } else {
-                                saidaStr = `${horaSaidaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;" title="Trabalhou apenas ${diffHoras.toFixed(1)}h">⚠️ Saída Antecipada</span> ${horasTrabTexto}`;
+                                saidaStr = `${horaSaidaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Saída Antecipada</span> ${horasTrabTexto}`;
                             }
                         } else {
                             saidaStr = '<span style="color: #17a2b8; font-weight: bold;">Trabalhando (Em aberto)</span>';
@@ -409,7 +424,6 @@
                 };
             });
 
-            // Atualizar contadores dos cards
             let countTotal = listaFuncionariosCache.length;
             let countTrabalhando = listaFuncionariosCache.filter(f => f.statusCalculado === 'TRABALHANDO').length;
             let countConcluidos = listaFuncionariosCache.filter(f => f.statusCalculado === 'CONCLUIDO').length;
@@ -438,6 +452,11 @@
 
             let html = '';
             filtrados.forEach(func => {
+                let botaoJustificarHtml = '';
+                if (func.statusCalculado === 'FALTA') {
+                    botaoJustificarHtml = `<button class="btn-acao btn-justificar" onclick="abrirModalObs('${func.matricula}', '${func.nome}')">Justificar</button>`;
+                }
+
                 html += `
                     <tr>
                         <td>${func.matricula}</td>
@@ -454,7 +473,7 @@
                         <td>
                             <button class="btn-acao" onclick="abrirModalAjuste('${func.matricula}', '${func.nome}')">Ajustar</button>
                             <button class="btn-acao btn-atestado" onclick="lancarAtestado('${func.matricula}', '${func.nome}')">Atestado</button>
-                            <button class="btn-acao btn-obs" onclick="abrirModalObs('${func.matricula}', '${func.nome}')">Nota</button>
+                            ${botaoJustificarHtml}
                             
                             <div class="dropdown" id="dropdown-${func.matricula}">
                                 <button class="btn-acao btn-engrenagem" onclick="toggleMenu(event, '${func.matricula}')">⚙️</button>
@@ -483,6 +502,24 @@
             document.getElementById('indFaltas').innerText = faltas;
             document.getElementById('indAtestados').innerText = atestados;
         }
+
+        window.exportarCSV = function() {
+            let csv = 'Matricula;Funcionario;Turnos;Primeira Entrada;Status\n';
+            listaFuncionariosCache.forEach(f => {
+                let statusLimpo = f.saidaStr.replace(/<[^>]*>?/gm, '');
+                let entradaLimpa = f.entradaStr.replace(/<[^>]*>?/gm, '');
+                csv += `${f.matricula};${f.nome};${f.turno || ''};${entradaLimpa};${statusLimpo}\n`;
+            });
+
+            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio_ponto_${inputData.value}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
 
         document.getElementById('formFuncionario').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -629,6 +666,13 @@
 
             if (novosRegistros.length > 0) await supabase.from('registros_ponto').insert(novosRegistros);
 
+            // Trilha de auditoria da alteração manual
+            await supabase.from('registros_ponto').insert([{
+                matricula: matricula,
+                tipo: `Nota: [Auditoria] Ponto ajustado manualmente pela Gestão`,
+                data_hora: new Date().toISOString()
+            }]);
+
             alert('Ponto ajustado com sucesso!');
             fecharModal();
             carregarDados();
@@ -639,13 +683,21 @@
             if (!confirm(`Deseja lançar Atestado Médico para ${nome}?`)) return;
 
             await supabase.from('registros_ponto').insert([{ matricula, tipo: 'Atestado', data_hora: new Date(`${dataSelecionadaStr}T08:00:00`).toISOString() }]);
+            
+            // Trilha de auditoria
+            await supabase.from('registros_ponto').insert([{
+                matricula: matricula,
+                tipo: `Nota: [Auditoria] Atestado médico lançado pela Gestão`,
+                data_hora: new Date().toISOString()
+            }]);
+
             alert('Atestado lançado com sucesso!');
             carregarDados();
         };
 
         window.abrirModalObs = function(matricula, nome) {
             funcionarioSelecionadoParaObs = { matricula, nome };
-            document.getElementById('tituloModalObs').innerText = `Nota / Justificativa: ${nome}`;
+            document.getElementById('tituloModalObs').innerText = `Justificar Falta: ${nome}`;
             document.getElementById('textoObs').value = '';
             document.getElementById('modalObs').style.display = 'flex';
         };
@@ -660,7 +712,7 @@
             const dataSelecionadaStr = inputData.value;
             const texto = document.getElementById('textoObs').value;
             if (!texto) {
-                alert('Escreva uma observação.');
+                alert('Escreva a justificativa da falta.');
                 return;
             }
 
@@ -670,10 +722,18 @@
                 data_hora: new Date(`${dataSelecionadaStr}T12:00:00`).toISOString()
             }]);
 
-            alert('Observação salva com sucesso!');
+            alert('Justificativa salva com sucesso!');
             fecharModalObs();
             carregarDados();
         };
+
+        // Ouvinte em Tempo Real do Supabase (Atualiza a tela na hora se baterem ponto na portaria)
+        supabase
+            .channel('tabela-registros-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_ponto' }, () => {
+                carregarDados();
+            })
+            .subscribe();
 
         carregarDados();
     </script>
