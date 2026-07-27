@@ -2,14 +2,13 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>CheckPonto - Escola Municipal Emiliano Zapata</title>
+    <title>CheckPonto - Sistema de Ponto</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        /* Tela de Login Inicial */
+        /* Tela de Login Inicial (Sem o nome da escola antes de logar) */
         #telaLogin { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 380px; text-align: center; }
-        #telaLogin h2 { color: #007bff; margin-bottom: 5px; font-size: 22px; }
-        #telaLogin .escola-sub { font-size: 14px; font-weight: bold; color: #444; margin-bottom: 25px; background: #e7f1ff; padding: 8px; border-radius: 5px; }
+        #telaLogin h2 { color: #007bff; margin-bottom: 25px; font-size: 24px; }
         .login-group { margin-bottom: 15px; text-align: left; display: flex; flex-direction: column; }
         .login-group label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .login-group input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
@@ -103,10 +102,9 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN COM NOME DA ESCOLA -->
+    <!-- TELA DE LOGIN INICIAL (Sem identificar a escola ainda) -->
     <div id="telaLogin">
         <h2>CheckPonto</h2>
-        <div class="escola-sub">Escola Municipal Emiliano Zapata</div>
         <form id="formLoginGestor">
             <div class="login-group">
                 <label>Usuário:</label>
@@ -121,7 +119,7 @@
         </form>
     </div>
 
-    <!-- PAINEL PRINCIPAL (APÓS LOGIN) -->
+    <!-- PAINEL PRINCIPAL (APÓS LOGIN - Mostra a escola e os dados) -->
     <div class="container" id="painelPrincipal">
         <div class="menu-nav">
             <a href="index.html" class="btn-link">← Ir para o Leitor (Portaria)</a>
@@ -312,7 +310,7 @@
     <script type="module">
         import { supabase } from './services/supabase.js';
 
-        // Defina aqui o usuário e a senha de acesso rápido para a escola
+        // Defina aqui o usuário e a senha de acesso rápido
         const USUARIO_VALIDO = "zapata";
         const SENHA_VALIDA = "123456";
 
