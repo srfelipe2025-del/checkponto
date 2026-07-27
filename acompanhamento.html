@@ -9,9 +9,11 @@
         h2 { text-align: center; color: #333; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
         
-        /* Estilo do Dashboard de Indicadores */
+        /* Estilo do Dashboard de Indicadores Clicáveis */
         .dashboard-cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
-        .card-stat { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 12px 8px; text-align: center; }
+        .card-stat { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .card-stat:hover { background: #e9ecef; border-color: #007bff; transform: translateY(-2px); }
+        .card-stat.ativo { border: 2px solid #007bff; background: #e7f1ff; }
         .card-stat h4 { margin: 0; font-size: 11px; color: #555; text-transform: uppercase; }
         .card-stat .valor { font-size: 20px; font-weight: bold; margin-top: 5px; color: #007bff; }
         .card-stat.atraso .valor { color: #d39e00; }
@@ -33,6 +35,14 @@
         .btn-acao:hover { background: #0056b3; }
         .btn-atestado { background: #6f42c1; }
         .btn-atestado:hover { background: #5a32a3; }
+        .btn-obs { background: #17a2b8; }
+        .btn-obs:hover { background: #138496; }
+
+        /* Barra de Pesquisa e Filtro Ativo */
+        .tabela-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .input-busca { padding: 8px; width: 250px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .filtro-ativo-info { font-size: 13px; color: #007bff; font-weight: bold; display: none; align-items: center; gap: 5px; }
+        .btn-limpar-filtro { background: none; border: none; color: #dc3545; cursor: pointer; font-weight: bold; font-size: 12px; text-decoration: underline; }
 
         /* Estilo do Menu Dropdown da Engrenagem */
         .dropdown { position: relative; display: inline-block; }
@@ -45,7 +55,7 @@
         .dropdown-content .btn-excluir-item:hover { background-color: #f8d7da; }
         .dropdown.show .dropdown-content { display: block; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
         th { background-color: #343a40; color: white; }
         tr:hover { background-color: #f1f1f1; }
@@ -57,16 +67,15 @@
         .turno-checks { display: flex; gap: 10px; font-size: 12px; align-items: center; }
         .turno-checks label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 3px; }
 
-        /* Estilo do Modal de Ajuste */
+        /* Estilo dos Modais */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .modal-content h3 { margin-top: 0; color: #333; font-size: 18px; margin-bottom: 15px; text-align: center; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .btn-cancelar { background: #6c757d; }
         .btn-cancelar:hover { background: #5a6268; }
-
-        /* Estilo do Modal de Relatório Individual */
         .modal-relatorio { width: 600px; max-height: 80vh; overflow-y: auto; }
+        textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif; font-size: 13px; resize: vertical; height: 80px; }
     </style>
 </head>
 <body>
@@ -77,31 +86,31 @@
         </div>
         
         <h2>Painel de Gestão e Acompanhamento</h2>
-        <div class="subtitle">Cadastre funcionários com múltiplos turnos, audite pontos e valide a jornada mínima de 8 horas</div>
+        <div class="subtitle">Cadastre funcionários, audite pontos, valide jornada mínima e acompanhe indicadores em tempo real</div>
 
-        <!-- Painel de Indicadores / Dashboard -->
+        <!-- Painel de Indicadores Clicáveis -->
         <div class="dashboard-cards">
-            <div class="card-stat">
+            <div class="card-stat" id="card-todos" onclick="filtrarStatus('TODOS')">
                 <h4>Total Equipe</h4>
                 <div class="valor" id="indTotal">0</div>
             </div>
-            <div class="card-stat trabalhando">
+            <div class="card-stat trabalhando" id="card-trabalhando" onclick="filtrarStatus('TRABALHANDO')">
                 <h4>Trabalhando</h4>
                 <div class="valor" id="indTrabalhando">0</div>
             </div>
-            <div class="card-stat">
+            <div class="card-stat" id="card-concluidos" onclick="filtrarStatus('CONCLUIDO')">
                 <h4>Concluídos</h4>
                 <div class="valor" id="indConcluidos">0</div>
             </div>
-            <div class="card-stat atraso">
+            <div class="card-stat atraso" id="card-atraso" onclick="filtrarStatus('ATRASADO')">
                 <h4>Com Atraso</h4>
                 <div class="valor" id="indAtrasados">0</div>
             </div>
-            <div class="card-stat falta">
+            <div class="card-stat falta" id="card-falta" onclick="filtrarStatus('FALTA')">
                 <h4>Faltas</h4>
                 <div class="valor" id="indFaltas">0</div>
             </div>
-            <div class="card-stat atestado">
+            <div class="card-stat atestado" id="card-atestado" onclick="filtrarStatus('ATESTADO')">
                 <h4>Atestados</h4>
                 <div class="valor" id="indAtestados">0</div>
             </div>
@@ -140,12 +149,22 @@
                     <input type="date" id="dataFiltro" onchange="carregarDados()">
                 </div>
                 <p style="font-size: 12px; color: #666; line-height: 1.4;">
-                    O painel valida automaticamente se o funcionário completou o período mínimo de 8 horas de trabalho.
+                    Clique nos cards acima para filtrar a tabela instantaneamente por status.
                 </p>
             </div>
         </div>
 
-        <h3>Funcionários e Registros do Dia</h3>
+        <div class="tabela-cabecalho">
+            <h3 style="margin: 0;">Funcionários e Registros do Dia</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div id="filtroAtivoInfo" class="filtro-ativo-info">
+                    Filtrando por: <span id="nomeFiltroAtivo"></span>
+                    <button class="btn-limpar-filtro" onclick="filtrarStatus('TODOS')">(Mostrar todos)</button>
+                </div>
+                <input type="text" id="inputBusca" class="input-busca" placeholder="🔍 Buscar por nome ou matrícula..." onkeyup="filtrarTabelaBusca()">
+            </div>
+        </div>
+
         <table id="tabelaAcompanhamento">
             <thead>
                 <tr>
@@ -182,6 +201,21 @@
         </div>
     </div>
 
+    <!-- Modal de Observação / Justificativa -->
+    <div id="modalObs" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="tituloModalObs">Adicionar Observação</h3>
+            <div class="form-group">
+                <label>Justificativa / Nota do Dia:</label>
+                <textarea id="textoObs" placeholder="Ex: Falta justificada por motivo particular, trabalho externo autorizado..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-cancelar" onclick="fecharModalObs()">Cancelar</button>
+                <button type="button" class="btn" onclick="salvarObservacao()">Salvar Nota</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Relatório Individual -->
     <div id="modalRelatorio" class="modal-overlay">
         <div class="modal-content modal-relatorio">
@@ -201,16 +235,15 @@
         inputData.valueAsDate = new Date();
 
         let funcionarioSelecionadoParaAjuste = null;
+        let funcionarioSelecionadoParaObs = null;
+        let listaFuncionariosCache = [];
+        let filtroAtual = 'TODOS';
 
-        // Fechar dropdowns ao clicar fora
         window.addEventListener('click', function(e) {
             if (!e.target.matches('.btn-engrenagem')) {
                 const dropdowns = document.getElementsByClassName("dropdown");
                 for (let i = 0; i < dropdowns.length; i++) {
-                    let openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
+                    dropdowns[i].classList.remove('show');
                 }
             }
         });
@@ -230,7 +263,6 @@
             }
         };
 
-        // Função para checar atraso (Noite corrigido para 19:15)
         function verificarAtraso(turno, primeiraEntradaDate) {
             if (!primeiraEntradaDate || !turno) return false;
             
@@ -244,6 +276,33 @@
 
             return false;
         }
+
+        window.filtrarStatus = function(status) {
+            filtroAtual = status;
+            
+            // Destacar card selecionado
+            document.querySelectorAll('.card-stat').forEach(c => c.classList.remove('ativo'));
+            const cardMap = {
+                'TODOS': 'card-todos',
+                'TRABALHANDO': 'card-trabalhando',
+                'CONCLUIDO': 'card-concluidos',
+                'ATRASADO': 'card-atraso',
+                'FALTA': 'card-falta',
+                'ATESTADO': 'card-atestado'
+            };
+            if(cardMap[status]) document.getElementById(cardMap[status]).classList.add('ativo');
+
+            // Exibir info do filtro ativo
+            const infoDiv = document.getElementById('filtroAtivoInfo');
+            if (status !== 'TODOS') {
+                infoDiv.style.display = 'flex';
+                document.getElementById('nomeFiltroAtivo').innerText = status;
+            } else {
+                infoDiv.style.display = 'none';
+            }
+
+            renderizarTabela();
+        };
 
         window.carregarDados = async function() {
             const dataSelecionadaStr = inputData.value;
@@ -276,6 +335,7 @@
             if (!funcionarios || funcionarios.length === 0) {
                 corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum funcionário cadastrado.</td></tr>';
                 atualizarIndicadores(0, 0, 0, 0, 0, 0);
+                listaFuncionariosCache = [];
                 return;
             }
 
@@ -289,20 +349,13 @@
                 });
             }
 
-            let html = '';
-            
-            let countTotal = funcionarios.length;
-            let countTrabalhando = 0;
-            let countConcluidos = 0;
-            let countAtrasados = 0;
-            let countFaltas = 0;
-            let countAtestados = 0;
-
-            funcionarios.forEach(func => {
+            listaFuncionariosCache = funcionarios.map(func => {
                 const regs = regsPorMatricula[func.matricula] || [];
                 let entradaStr = '-';
                 let saidaStr = '<span style="color: #dc3545; font-weight: bold;">Falta</span>';
                 const turnoAtual = func.turno || '';
+                let statusCalculado = 'FALTA';
+                let horasTrabTexto = '';
 
                 const isManha = turnoAtual.includes('Manhã');
                 const isTarde = turnoAtual.includes('Tarde');
@@ -312,7 +365,7 @@
                     if (regs[0].tipo === 'Atestado') {
                         entradaStr = 'Atestado Médico';
                         saidaStr = '<span style="color: #6f42c1; font-weight: bold;">Afastado (Atestado)</span>';
-                        countAtestados++;
+                        statusCalculado = 'ATESTADO';
                     } else {
                         const primeiraEntradaObj = new Date(regs[0].data_hora);
                         const horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
@@ -320,51 +373,88 @@
                         const turnoAtrasado = verificarAtraso(turnoAtual, primeiraEntradaObj);
                         if (turnoAtrasado) {
                             entradaStr = `${horaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>`;
-                            countAtrasados++;
+                            statusCalculado = 'ATRASADO';
                         } else {
                             entradaStr = horaFormatada;
+                            statusCalculado = 'CONCLUIDO';
                         }
 
                         if (regs.length % 2 === 0) {
                             const ultimaSaidaObj = new Date(regs[regs.length - 1].data_hora);
                             const horaSaidaFormatada = ultimaSaidaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                             
-                            // Cálculo da diferença em horas entre entrada e saída
                             const diffMs = ultimaSaidaObj - primeiraEntradaObj;
                             const diffHoras = diffMs / (1000 * 60 * 60);
+                            const horas = Math.floor(diffHoras);
+                            const minutos = Math.round((diffHoras - horas) * 60);
+                            horasTrabTexto = `(${horas}h ${minutos}m)`;
 
                             if (diffHoras >= 8) {
-                                saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span>`;
-                                countConcluidos++;
+                                saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span> ${horasTrabTexto}`;
                             } else {
-                                saidaStr = `${horaSaidaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;" title="Trabalhou apenas ${diffHoras.toFixed(1)}h">⚠️ Saída Antecipada</span>`;
-                                countConcluidos++; // Conta como encerrado do dia, mas sinalizado
+                                saidaStr = `${horaSaidaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;" title="Trabalhou apenas ${diffHoras.toFixed(1)}h">⚠️ Saída Antecipada</span> ${horasTrabTexto}`;
                             }
                         } else {
                             saidaStr = '<span style="color: #17a2b8; font-weight: bold;">Trabalhando (Em aberto)</span>';
-                            countTrabalhando++;
+                            statusCalculado = 'TRABALHANDO';
                         }
                     }
-                } else {
-                    countFaltas++;
                 }
 
+                return {
+                    ...func,
+                    isManha, isTarde, isNoite,
+                    entradaStr, saidaStr,
+                    statusCalculado
+                };
+            });
+
+            // Atualizar contadores dos cards
+            let countTotal = listaFuncionariosCache.length;
+            let countTrabalhando = listaFuncionariosCache.filter(f => f.statusCalculado === 'TRABALHANDO').length;
+            let countConcluidos = listaFuncionariosCache.filter(f => f.statusCalculado === 'CONCLUIDO').length;
+            let countAtrasados = listaFuncionariosCache.filter(f => f.statusCalculado === 'ATRASADO').length;
+            let countFaltas = listaFuncionariosCache.filter(f => f.statusCalculado === 'FALTA').length;
+            let countAtestados = listaFuncionariosCache.filter(f => f.statusCalculado === 'ATESTADO').length;
+
+            atualizarIndicadores(countTotal, countTrabalhando, countConcluidos, countAtrasados, countFaltas, countAtestados);
+            renderizarTabela();
+        };
+
+        window.renderizarTabela = function() {
+            const corpo = document.getElementById('corpoTabela');
+            const termoBusca = document.getElementById('inputBusca').value.toLowerCase();
+
+            let filtrados = listaFuncionariosCache.filter(func => {
+                const atendeStatus = (filtroAtual === 'TODOS' || func.statusCalculado === filtroAtual);
+                const atendeBusca = func.nome.toLowerCase().includes(termoBusca) || func.matricula.toLowerCase().includes(termoBusca);
+                return atendeStatus && atendeBusca;
+            });
+
+            if (filtrados.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">Nenhum funcionário encontrado com os filtros atuais.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            filtrados.forEach(func => {
                 html += `
                     <tr>
                         <td>${func.matricula}</td>
                         <td><strong>${func.nome}</strong></td>
                         <td>
                             <div class="turno-checks">
-                                <label><input type="checkbox" value="Manhã" ${isManha ? 'checked' : ''} onchange="atualizarTurnosCheck('${func.matricula}')"> Manhã</label>
-                                <label><input type="checkbox" value="Tarde" ${isTarde ? 'checked' : ''} onchange="atualizarTurnosCheck('${func.matricula}')"> Tarde</label>
-                                <label><input type="checkbox" value="Noite" ${isNoite ? 'checked' : ''} onchange="atualizarTurnosCheck('${func.matricula}')"> Noite</label>
+                                <label><input type="checkbox" value="Manhã" ${func.isManha ? 'checked' : ''} onchange="atualizarTurnosCheck('${func.matricula}')"> Manhã</label>
+                                <label><input type="checkbox" value="Tarde" ${func.isTarde ? 'checked' : ''} onchange="atualizarTurnosCheck('${func.matricula}')"> Tarde</label>
+                                <label><input type="checkbox" value="Noite" ${func.isNoite ? 'checked' : ''} onchange="atualizarTurnosCheck('${func.matricula}')"> Noite</label>
                             </div>
                         </td>
-                        <td>${entradaStr}</td>
-                        <td>${saidaStr}</td>
+                        <td>${func.entradaStr}</td>
+                        <td>${func.saidaStr}</td>
                         <td>
                             <button class="btn-acao" onclick="abrirModalAjuste('${func.matricula}', '${func.nome}')">Ajustar</button>
                             <button class="btn-acao btn-atestado" onclick="lancarAtestado('${func.matricula}', '${func.nome}')">Atestado</button>
+                            <button class="btn-acao btn-obs" onclick="abrirModalObs('${func.matricula}', '${func.nome}')">Nota</button>
                             
                             <div class="dropdown" id="dropdown-${func.matricula}">
                                 <button class="btn-acao btn-engrenagem" onclick="toggleMenu(event, '${func.matricula}')">⚙️</button>
@@ -379,7 +469,10 @@
             });
 
             corpo.innerHTML = html;
-            atualizarIndicadores(countTotal, countTrabalhando, countConcluidos, countAtrasados, countFaltas, countAtestados);
+        };
+
+        window.filtrarTabelaBusca = function() {
+            renderizarTabela();
         };
 
         function atualizarIndicadores(total, trabalhando, concluidos, atrasados, faltas, atestados) {
@@ -391,7 +484,6 @@
             document.getElementById('indAtestados').innerText = atestados;
         }
 
-        // Cadastrar Novo Funcionário
         document.getElementById('formFuncionario').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('nomeFunc').value;
@@ -442,25 +534,13 @@
             const confirmar = confirm(`Tem certeza que deseja excluir o funcionário ${nome} (Matrícula: ${matricula})? Todos os registros de ponto dele também serão apagados.`);
             if (!confirmar) return;
 
-            const { error: errReg } = await supabase
-                .from('registros_ponto')
-                .delete()
-                .eq('matricula', matricula);
-
-            if (errReg) {
-                alert('Erro ao excluir os registros de ponto do funcionário: ' + errReg.message);
-                return;
-            }
-
-            const { error: errFunc } = await supabase
-                .from('funcionarios')
-                .delete()
-                .eq('matricula', matricula);
+            await supabase.from('registros_ponto').delete().eq('matricula', matricula);
+            const { error: errFunc } = await supabase.from('funcionarios').delete().eq('matricula', matricula);
 
             if (errFunc) {
                 alert('Erro ao excluir funcionário: ' + errFunc.message);
             } else {
-                alert('Funcionário e seus registros excluídos com sucesso!');
+                alert('Funcionário excluído com sucesso!');
                 carregarDados();
             }
         };
@@ -477,41 +557,16 @@
                 .eq('matricula', matricula)
                 .order('data_hora', { ascending: false });
 
-            if (error) {
-                containerRel.innerHTML = '<p style="color: red;">Erro ao carregar relatório.</p>';
+            if (error || !registros || registros.length === 0) {
+                containerRel.innerHTML = '<p style="text-align: center; color: #666;">Nenhum registro encontrado.</p>';
                 return;
             }
 
-            if (!registros || registros.length === 0) {
-                containerRel.innerHTML = '<p style="text-align: center; color: #666;">Nenhum registro de ponto encontrado para este funcionário.</p>';
-                return;
-            }
-
-            let html = `
-                <table style="width:100%; border-collapse: collapse; margin-top: 10px;">
-                    <thead>
-                        <tr style="background: #f1f1f1;">
-                            <th style="padding: 8px; border: 1px solid #ddd;">Data e Hora</th>
-                            <th style="padding: 8px; border: 1px solid #ddd;">Tipo de Registro</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
+            let html = `<table style="width:100%; border-collapse: collapse; margin-top: 10px;"><thead><tr style="background: #f1f1f1;"><th style="padding: 8px; border: 1px solid #ddd;">Data e Hora</th><th style="padding: 8px; border: 1px solid #ddd;">Tipo / Nota</th></tr></thead><tbody>`;
             registros.forEach(r => {
                 const dataFormatada = new Date(r.data_hora).toLocaleString('pt-BR');
-                let corTipo = '#007bff';
-                if (r.tipo === 'Encerrado') corTipo = '#28a745';
-                if (r.tipo === 'Atestado') corTipo = '#6f42c1';
-
-                html += `
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd;">${dataFormatada}</td>
-                        <td style="padding: 8px; border: 1px solid #ddd; color: ${corTipo}; font-weight: bold;">${r.tipo}</td>
-                    </tr>
-                `;
+                html += `<tr><td style="padding: 8px; border: 1px solid #ddd;">${dataFormatada}</td><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${r.tipo}</td></tr>`;
             });
-
             html += `</tbody></table>`;
             containerRel.innerHTML = html;
         };
@@ -539,13 +594,12 @@
                 .order('data_hora', { ascending: true });
 
             if (regs && regs.length > 0) {
-                if (regs[0] && regs[0].tipo === 'Trabalhando') {
-                    const d = new Date(regs[0].data_hora);
-                    document.getElementById('horaEntradaAjuste').value = d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                if (regs[0] && regs[0].tipo !== 'Atestado' && !regs[0].tipo.startsWith('Nota:')) {
+                    document.getElementById('horaEntradaAjuste').value = new Date(regs[0].data_hora).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                 }
-                if (regs.length > 1 && regs[regs.length - 1].tipo === 'Encerrado') {
-                    const d = new Date(regs[regs.length - 1].data_hora);
-                    document.getElementById('horaSaidaAjuste').value = d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                const ult = regs.filter(r => r.tipo === 'Encerrado');
+                if (ult.length > 0) {
+                    document.getElementById('horaSaidaAjuste').value = new Date(ult[0].data_hora).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                 }
             }
 
@@ -561,45 +615,19 @@
             if (!funcionarioSelecionadoParaAjuste) return;
             const dataSelecionadaStr = inputData.value;
             const matricula = funcionarioSelecionadoParaAjuste.matricula;
-
             const horaEntrada = document.getElementById('horaEntradaAjuste').value;
             const horaSaida = document.getElementById('horaSaidaAjuste').value;
 
             const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
             const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
 
-            await supabase
-                .from('registros_ponto')
-                .delete()
-                .eq('matricula', matricula)
-                .gte('data_hora', inicioDia.toISOString())
-                .lte('data_hora', fimDia.toISOString());
+            await supabase.from('registros_ponto').delete().eq('matricula', matricula).gte('data_hora', inicioDia.toISOString()).lte('data_hora', fimDia.toISOString());
 
             let novosRegistros = [];
+            if (horaEntrada) novosRegistros.push({ matricula, tipo: 'Trabalhando', data_hora: new Date(`${dataSelecionadaStr}T${horaEntrada}:00`).toISOString() });
+            if (horaSaida) novosRegistros.push({ matricula, tipo: 'Encerrado', data_hora: new Date(`${dataSelecionadaStr}T${horaSaida}:00`).toISOString() });
 
-            if (horaEntrada) {
-                novosRegistros.push({
-                    matricula: matricula,
-                    tipo: 'Trabalhando',
-                    data_hora: new Date(`${dataSelecionadaStr}T${horaEntrada}:00`).toISOString()
-                });
-            }
-
-            if (horaSaida) {
-                novosRegistros.push({
-                    matricula: matricula,
-                    tipo: 'Encerrado',
-                    data_hora: new Date(`${dataSelecionadaStr}T${horaSaida}:00`).toISOString()
-                });
-            }
-
-            if (novosRegistros.length > 0) {
-                const { error } = await supabase.from('registros_ponto').insert(novosRegistros);
-                if (error) {
-                    alert('Erro ao salvar ajustes: ' + error.message);
-                    return;
-                }
-            }
+            if (novosRegistros.length > 0) await supabase.from('registros_ponto').insert(novosRegistros);
 
             alert('Ponto ajustado com sucesso!');
             fecharModal();
@@ -608,23 +636,43 @@
 
         window.lancarAtestado = async function(matricula, nome) {
             const dataSelecionadaStr = inputData.value;
-            const confirmar = confirm(`Deseja lançar Atestado Médico para ${nome} na data ${dataSelecionadaStr}?`);
-            if (!confirmar) return;
+            if (!confirm(`Deseja lançar Atestado Médico para ${nome}?`)) return;
 
-            const dataHoraAtestado = new Date(`${dataSelecionadaStr}T08:00:00`);
+            await supabase.from('registros_ponto').insert([{ matricula, tipo: 'Atestado', data_hora: new Date(`${dataSelecionadaStr}T08:00:00`).toISOString() }]);
+            alert('Atestado lançado com sucesso!');
+            carregarDados();
+        };
 
-            const { error } = await supabase.from('registros_ponto').insert([{
-                matricula: matricula,
-                tipo: 'Atestado',
-                data_hora: dataHoraAtestado.toISOString()
+        window.abrirModalObs = function(matricula, nome) {
+            funcionarioSelecionadoParaObs = { matricula, nome };
+            document.getElementById('tituloModalObs').innerText = `Nota / Justificativa: ${nome}`;
+            document.getElementById('textoObs').value = '';
+            document.getElementById('modalObs').style.display = 'flex';
+        };
+
+        window.fecharModalObs = function() {
+            document.getElementById('modalObs').style.display = 'none';
+            funcionarioSelecionadoParaObs = null;
+        };
+
+        window.salvarObservacao = async function() {
+            if (!funcionarioSelecionadoParaObs) return;
+            const dataSelecionadaStr = inputData.value;
+            const texto = document.getElementById('textoObs').value;
+            if (!texto) {
+                alert('Escreva uma observação.');
+                return;
+            }
+
+            await supabase.from('registros_ponto').insert([{
+                matricula: funcionarioSelecionadoParaObs.matricula,
+                tipo: `Nota: ${texto}`,
+                data_hora: new Date(`${dataSelecionadaStr}T12:00:00`).toISOString()
             }]);
 
-            if (error) {
-                alert('Erro ao lançar atestado: ' + error.message);
-            } else {
-                alert('Atestado lançado com sucesso!');
-                carregarDados();
-            }
+            alert('Observação salva com sucesso!');
+            fecharModalObs();
+            carregarDados();
         };
 
         carregarDados();
