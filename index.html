@@ -2,96 +2,136 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>CheckPonto - Leitor de Crachá</title>
+    <title>CheckPonto - Leitor</title>
+    <!-- Biblioteca Html5Qrcode para leitura de QR Code via Câmera -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        .container { text-align: center; width: 100%; max-width: 600px; padding: 20px; }
-        h1 { margin-bottom: 5px; font-size: 28px; }
-        p { color: #aaa; margin-bottom: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #18191a; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            color: #fff;
+        }
         
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 4px solid #007bff; background: #000; }
+        /* Botões no canto superior esquerdo */
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-topo {
+            background: #3a3b3c;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-topo:hover {
+            background: #4e4f50;
+        }
+
+        .container { 
+            background: #242526; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); 
+            width: 480px; 
+            text-align: center; 
+            position: relative;
+        }
+        h2 { color: #fff; margin-bottom: 8px; font-size: 24px; }
+        .subtitle { color: #b0b3b8; margin-bottom: 25px; font-size: 14px; }
         
-        /* Espelhamento corrigido da câmera (Remove o reflexo de espelho) */
+        /* Estilo do Leitor de QR Code / Câmera */
+        #reader { 
+            width: 100%; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            margin-bottom: 15px; 
+            background: #000; 
+            border: 3px solid #2d88ff;
+        }
+        
+        /* Corrige o sentido do movimento da câmera (espelhamento natural) */
         #reader video {
             transform: scaleX(-1);
-            -webkit-transform: scaleX(-1);
         }
-        
-        /* Área secreta de admin / tela cheia discreta no canto */
-        .menu-secreto { position: absolute; top: 15px; left: 15px; display: flex; gap: 10px; opacity: 0.1; transition: opacity 0.3s; }
-        .menu-secreto:hover { opacity: 1; } /* Só aparece bem se passar o mouse por cima do canto */
-        .btn-link { padding: 6px 12px; background: #333; color: #aaa; text-decoration: none; border-radius: 4px; font-size: 12px; border: 1px solid #444; cursor: pointer; }
-        .btn-link:hover { background: #444; color: white; }
 
-        /* Estilo do Card de Sucesso Kiosk (Tela Cheia) */
-        #modalSucesso {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 123, 255, 0.95);
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        #modalSucesso h2 { font-size: 45px; margin: 0 0 10px 0; }
-        #modalSucesso p { font-size: 24px; color: #fff; margin: 5px 0; }
-        #modalSucesso .hora { font-size: 60px; font-weight: bold; margin-top: 20px; background: rgba(0,0,0,0.2); padding: 10px 30px; border-radius: 10px; }
+        #mensagemFeedback { margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; display: none; }
+        .sucesso { background: #137333; color: #e6f4ea; border: 1px solid #1e8e3e; }
+        .erro { background: #c5221f; color: #fce8e6; border: 1px solid #ea4335; }
     </style>
 </head>
 <body>
-    <!-- Cantinho secreto/discreto para admin e tela cheia -->
-    <div class="menu-secreto">
-        <button class="btn-link" onclick="tentarAcessarGestao()">Admin</button>
-        <button class="btn-link" onclick="toggleFullscreen()">Tela Cheia</button>
+    <!-- Controles no Canto Superior Esquerdo -->
+    <div class="top-controls">
+        <button class="btn-topo" id="btnAdmin">Admin</button>
+        <button class="btn-topo" id="btnTelaCheia">Tela Cheia</button>
     </div>
 
     <div class="container">
-        <h1>CheckPonto - Leitor</h1>
-        <p>Aponte o crachá com o QR Code para a câmera</p>
+        <h2>CheckPonto - Leitor</h2>
+        <div class="subtitle">Aponte o crachá com o QR Code para a câmera</div>
+
+        <!-- Leitor de Câmera (QR Code) -->
         <div id="reader"></div>
+
+        <div id="mensagemFeedback"></div>
     </div>
 
-    <!-- Tela de Alerta Visual Kiosk -->
-    <div id="modalSucesso">
-        <h2 id="msgNome">Bem-vindo!</h2>
-        <p id="msgTipo">Ponto Registrado com Sucesso</p>
-        <div class="hora" id="msgHora">00:00:00</div>
-    </div>
-
-    <!-- Biblioteca do Html5Qrcode -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script type="module">
         import { supabase } from './services/supabase.js';
 
-        let lendoAtivo = true;
+        const divFeedback = document.getElementById('mensagemFeedback');
+        let processando = false;
 
-        function tocarBeep() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = 800;
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-            } catch (e) {
-                console.log('Áudio não suportado');
+        // Ação do Botão Admin com senha
+        document.getElementById('btnAdmin').addEventListener('click', () => {
+            const senhaDigitada = prompt("Digite a senha de Administrador:");
+            if (senhaDigitada === "emez2026") {
+                window.location.href = "acompanhamento.html";
+            } else if (senhaDigitada !== null) {
+                alert("❌ Senha incorreta!");
             }
-        }
+        });
 
-        async function onScanSuccess(decodedText) {
-            if (!lendoAtivo) return;
-            lendoAtivo = false;
+        // Ação do Botão Tela Cheia
+        document.getElementById('btnTelaCheia').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Erro ao ativar tela cheia: ", err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
 
-            const matricula = decodedText.trim();
-            const agora = new Date();
-            const horaFormatada = agora.toLocaleTimeString('pt-BR');
+        async function processarRegistro(matriculaLida) {
+            if (processando) return;
+            processando = true;
 
+            const matricula = matriculaLida.trim();
+            if (!matricula) {
+                processando = false;
+                return;
+            }
+
+            divFeedback.style.display = 'none';
+
+            // 1. Verificar se o funcionário existe cadastrado
             const { data: func, error: errFunc } = await supabase
                 .from('funcionarios')
                 .select('*')
@@ -99,95 +139,82 @@
                 .single();
 
             if (errFunc || !func) {
-                tocarBeep();
-                alert(`Crachá não encontrado (Matrícula: ${matricula})`);
-                setTimeout(() => { lendoAtivo = true; }, 2000);
+                mostrarFeedback("❌ Matrícula não encontrada no sistema.", "erro");
+                setTimeout(() => { processando = false; }, 4000);
                 return;
             }
 
-            const hojeInicio = new Date();
-            hojeInicio.setHours(0, 0, 0, 0);
-
-            const { data: regs, error: errReg } = await supabase
+            // 2. Buscar o último registro deste funcionário para alternar o status
+            const { data: ultimoRegistroArr } = await supabase
                 .from('registros_ponto')
                 .select('*')
                 .eq('matricula', matricula)
-                .gte('data_hora', hojeInicio.toISOString())
-                .order('data_hora', { ascending: true });
+                .order('data_hora', { ascending: false })
+                .limit(1);
 
-            if (errReg) {
-                alert('Erro ao consultar registros.');
-                lendoAtivo = true;
-                return;
-            }
+            let tipoRegistro = 'Entrada';
+            let mensagemSucesso = '';
 
-            let tipoRegistro = 'Trabalhando';
-            let textoAcao = 'Entrada Registrada';
-
-            if (regs && regs.length > 0) {
-                const ultimo = regs[regs.length - 1];
-                if (ultimo.tipo === 'Trabalhando') {
+            if (ultimoRegistroArr && ultimoRegistroArr.length > 0) {
+                const ultimo = ultimoRegistroArr[0];
+                if (ultimo.tipo === 'Entrada' || ultimo.tipo === 'Trabalhando') {
                     tipoRegistro = 'Encerrado';
-                    textoAcao = 'Saída Registrada';
+                    mensagemSucesso = `✅ Saída registrada: <strong>${func.nome}</strong>! Bom descanso.`;
+                } else {
+                    tipoRegistro = 'Entrada';
+                    mensagemSucesso = `✅ Entrada registrada: <strong>${func.nome}</strong>! Bom trabalho.`;
                 }
+            } else {
+                tipoRegistro = 'Entrada';
+                mensagemSucesso = `✅ Entrada registrada: <strong>${func.nome}</strong>! Bom trabalho.`;
             }
 
+            // 3. Salva o registro no Supabase
             const { error: errInsert } = await supabase.from('registros_ponto').insert([{
                 matricula: matricula,
                 tipo: tipoRegistro,
-                data_hora: agora.toISOString()
+                data_hora: new Date().toISOString()
             }]);
 
             if (errInsert) {
-                alert('Erro ao salvar ponto.');
-                lendoAtivo = true;
-                return;
+                mostrarFeedback("❌ Erro ao registrar ponto.", "erro");
+            } else {
+                mostrarFeedback(mensagemSucesso, "sucesso");
             }
 
-            tocarBeep();
-
-            const modal = document.getElementById('modalSucesso');
-            document.getElementById('msgNome').innerText = func.nome;
-            document.getElementById('msgTipo').innerText = textoAcao;
-            document.getElementById('msgHora').innerText = horaFormatada;
-            modal.style.display = 'flex';
-
+            // Intervalo de 4 segundos para liberar o próximo registro
             setTimeout(() => {
-                modal.style.display = 'none';
-                lendoAtivo = true;
-            }, 2200);
+                processando = false;
+            }, 4000);
         }
 
-        const html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-            { facingMode: "user" },
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            onScanSuccess
-        ).catch(err => {
-            console.error("Erro ao iniciar a câmera:", err);
-        });
+        // Inicializar a Câmera para leitura automática de QR Code
+        function onScanSuccess(decodedText, decodedResult) {
+            processarRegistro(decodedText);
+        }
 
-        // Função de Proteção por Senha para o Painel de Gestão
-        window.tentarAcessarGestao = function() {
-            const senha = prompt("Digite a senha de administrador:");
-            if (senha === "1234" || senha === "admin") {
-                window.location.href = "acompanhamento.html";
-            } else if (senha !== null) {
-                alert("Senha incorreta!");
-            }
-        };
+        try {
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "user" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess
+            ).catch(err => {
+                console.log("Câmera não iniciada automaticamente ou indisponível: ", err);
+            });
+        } catch (e) {
+            console.log("Erro ao carregar o leitor de QR Code: ", e);
+        }
 
-        window.toggleFullscreen = function() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Erro ao tentar modo tela cheia: ${err.message}`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        };
+        function mostrarFeedback(texto, classe) {
+            divFeedback.innerHTML = texto;
+            divFeedback.className = classe;
+            divFeedback.style.display = 'block';
+            
+            setTimeout(() => {
+                divFeedback.style.display = 'none';
+            }, 4000);
+        }
     </script>
 </body>
 </html>
