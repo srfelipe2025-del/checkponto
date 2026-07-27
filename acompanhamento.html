@@ -67,7 +67,7 @@
         </div>
         
         <h2>Painel de Gestão e Acompanhamento</h2>
-        <div class="subtitle">Cadastre funcionários com múltiplos turnos e ajuste entradas e saídas facilmente</div>
+        <div class="subtitle">Cadastre funcionários com múltiplos turnos, audite pontos e visualize alertas de atraso</div>
 
         <div class="painel-topo">
             <!-- Bloco 1: Cadastrar Funcionário -->
@@ -102,7 +102,7 @@
                     <input type="date" id="dataFiltro" onchange="carregarDados()">
                 </div>
                 <p style="font-size: 12px; color: #666; line-height: 1.4;">
-                    Você pode alterar os turnos diretamente na tabela abaixo para qualquer funcionário em dias específicos de forma rápida.
+                    O sistema identifica automaticamente se o funcionário chegou atrasado com base no turno cadastrado.
                 </p>
             </div>
         </div>
@@ -182,7 +182,6 @@
             const dropdown = document.getElementById(`dropdown-${matricula}`);
             const isOpen = dropdown.classList.contains('show');
             
-            // Fecha todos os outros abertos
             const dropdowns = document.getElementsByClassName("dropdown");
             for (let i = 0; i < dropdowns.length; i++) {
                 dropdowns[i].classList.remove('show');
@@ -192,6 +191,22 @@
                 dropdown.classList.add('show');
             }
         };
+
+        // Função para checar se houve atraso com base no turno (Noite corrigido para 19:15)
+        function verificarAtraso(turno, primeiraEntradaDate) {
+            if (!primeiraEntradaDate || !turno) return false;
+            
+            const hora = primeiraEntradaDate.getHours();
+            const minuto = primeiraEntradaDate.getMinutes();
+            const horaDecimal = hora + (minuto / 60);
+
+            // Limites de tolerância: Manhã (após 08:15), Tarde (após 13:15), Noite (após 19:15)
+            if (turno.includes('Manhã') && horaDecimal > 8.25) return 'Manhã';
+            if (turno.includes('Tarde') && horaDecimal > 13.25) return 'Tarde';
+            if (turno.includes('Noite') && horaDecimal > 19.25) return 'Noite';
+
+            return false;
+        }
 
         window.carregarDados = async function() {
             const dataSelecionadaStr = inputData.value;
@@ -253,8 +268,16 @@
                         entradaStr = 'Atestado Médico';
                         saidaStr = '<span style="color: #6f42c1; font-weight: bold;">Afastado (Atestado)</span>';
                     } else {
-                        const primeiraEntrada = new Date(regs[0].data_hora);
-                        entradaStr = primeiraEntrada.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                        const primeiraEntradaObj = new Date(regs[0].data_hora);
+                        const horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                        
+                        // Verifica se está atrasado
+                        const turnoAtrasado = verificarAtraso(turnoAtual, primeiraEntradaObj);
+                        if (turnoAtrasado) {
+                            entradaStr = `${horaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>`;
+                        } else {
+                            entradaStr = horaFormatada;
+                        }
 
                         if (regs.length % 2 === 0) {
                             const ultimaSaida = new Date(regs[regs.length - 1].data_hora);
@@ -321,7 +344,6 @@
             }
         });
 
-        // Atualizar Turnos Checkbox
         window.atualizarTurnosCheck = async function(matricula) {
             const trs = document.querySelectorAll('#corpoTabela tr');
             let turnosSelecionados = [];
@@ -345,12 +367,10 @@
             }
         };
 
-        // Excluir Funcionário (Apaga registros de ponto primeiro e depois o funcionário)
         window.excluirFuncionario = async function(matricula, nome) {
             const confirmar = confirm(`Tem certeza que deseja excluir o funcionário ${nome} (Matrícula: ${matricula})? Todos os registros de ponto dele também serão apagados.`);
             if (!confirmar) return;
 
-            // 1. Apagar os registros de ponto vinculados à matrícula primeiro
             const { error: errReg } = await supabase
                 .from('registros_ponto')
                 .delete()
@@ -361,7 +381,6 @@
                 return;
             }
 
-            // 2. Agora apagar o funcionário da tabela funcionarios
             const { error: errFunc } = await supabase
                 .from('funcionarios')
                 .delete()
@@ -375,7 +394,6 @@
             }
         };
 
-        // Abrir Modal de Relatório Individual
         window.abrirRelatorioIndividual = async function(matricula, nome) {
             document.getElementById('tituloModalRelatorio').innerText = `Relatório: ${nome} (Matrícula: ${matricula})`;
             const containerRel = document.getElementById('conteudoRelatorioIndividual');
@@ -431,7 +449,6 @@
             document.getElementById('modalRelatorio').style.display = 'none';
         };
 
-        // Abrir Modal de Ajuste
         window.abrirModalAjuste = async function(matricula, nome) {
             funcionarioSelecionadoParaAjuste = { matricula, nome };
             document.getElementById('tituloModalAjuste').innerText = `Ajustar Ponto: ${nome}`;
@@ -469,7 +486,6 @@
             funcionarioSelecionadoParaAjuste = null;
         };
 
-        // Salvar Ajustes do Modal
         window.salvarAjustePonto = async function() {
             if (!funcionarioSelecionadoParaAjuste) return;
             const dataSelecionadaStr = inputData.value;
@@ -519,7 +535,6 @@
             carregarDados();
         };
 
-        // Lançar Atestado
         window.lancarAtestado = async function(matricula, nome) {
             const dataSelecionadaStr = inputData.value;
             const confirmar = confirm(`Deseja lançar Atestado Médico para ${nome} na data ${dataSelecionadaStr}?`);
