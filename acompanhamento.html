@@ -77,7 +77,7 @@
         </div>
         
         <h2>Painel de Gestão e Acompanhamento</h2>
-        <div class="subtitle">Cadastre funcionários com múltiplos turnos, audite pontos e visualize indicadores em tempo real</div>
+        <div class="subtitle">Cadastre funcionários com múltiplos turnos, audite pontos e valide a jornada mínima de 8 horas</div>
 
         <!-- Painel de Indicadores / Dashboard -->
         <div class="dashboard-cards">
@@ -140,7 +140,7 @@
                     <input type="date" id="dataFiltro" onchange="carregarDados()">
                 </div>
                 <p style="font-size: 12px; color: #666; line-height: 1.4;">
-                    O painel acima calcula automaticamente os status com base nos turnos e registros da data escolhida.
+                    O painel valida automaticamente se o funcionário completou o período mínimo de 8 horas de trabalho.
                 </p>
             </div>
         </div>
@@ -230,7 +230,7 @@
             }
         };
 
-        // Função para checar se houve atraso com base no turno (Noite corrigido para 19:15)
+        // Função para checar atraso (Noite corrigido para 19:15)
         function verificarAtraso(turno, primeiraEntradaDate) {
             if (!primeiraEntradaDate || !turno) return false;
             
@@ -238,7 +238,6 @@
             const minuto = primeiraEntradaDate.getMinutes();
             const horaDecimal = hora + (minuto / 60);
 
-            // Limites de tolerância: Manhã (após 08:15), Tarde (após 13:15), Noite (após 19:15)
             if (turno.includes('Manhã') && horaDecimal > 8.25) return 'Manhã';
             if (turno.includes('Tarde') && horaDecimal > 13.25) return 'Tarde';
             if (turno.includes('Noite') && horaDecimal > 19.25) return 'Noite';
@@ -292,7 +291,6 @@
 
             let html = '';
             
-            // Contadores para o Dashboard
             let countTotal = funcionarios.length;
             let countTrabalhando = 0;
             let countConcluidos = 0;
@@ -319,7 +317,6 @@
                         const primeiraEntradaObj = new Date(regs[0].data_hora);
                         const horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                         
-                        // Verifica se está atrasado
                         const turnoAtrasado = verificarAtraso(turnoAtual, primeiraEntradaObj);
                         if (turnoAtrasado) {
                             entradaStr = `${horaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>`;
@@ -329,9 +326,20 @@
                         }
 
                         if (regs.length % 2 === 0) {
-                            const ultimaSaida = new Date(regs[regs.length - 1].data_hora);
-                            saidaStr = ultimaSaida.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) + ' (Concluído)';
-                            countConcluidos++;
+                            const ultimaSaidaObj = new Date(regs[regs.length - 1].data_hora);
+                            const horaSaidaFormatada = ultimaSaidaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                            
+                            // Cálculo da diferença em horas entre entrada e saída
+                            const diffMs = ultimaSaidaObj - primeiraEntradaObj;
+                            const diffHoras = diffMs / (1000 * 60 * 60);
+
+                            if (diffHoras >= 8) {
+                                saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span>`;
+                                countConcluidos++;
+                            } else {
+                                saidaStr = `${horaSaidaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;" title="Trabalhou apenas ${diffHoras.toFixed(1)}h">⚠️ Saída Antecipada</span>`;
+                                countConcluidos++; // Conta como encerrado do dia, mas sinalizado
+                            }
                         } else {
                             saidaStr = '<span style="color: #17a2b8; font-weight: bold;">Trabalhando (Em aberto)</span>';
                             countTrabalhando++;
