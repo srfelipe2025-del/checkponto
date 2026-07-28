@@ -94,6 +94,7 @@
         .btn-link:hover { background: #5a6268; }
 
         .escala-badge { background: #e2e3e5; color: #383d41; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
+        .funcao-badge { background: #e7f1ff; color: #0056b3; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 3px; }
 
         /* Estilo dos Modais */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
@@ -135,7 +136,7 @@
             <button class="btn-sair" onclick="fazerLogout()">Sair do Sistema</button>
         </div>
         
-        <!-- Cabeçalho Principal (Sem moldura de brasão) -->
+        <!-- Cabeçalho Principal -->
         <div class="painel-cabecalho-principal">
             <div class="titulo-container">
                 <h2>Painel de Gestão - Escola Municipal Emiliano Zapata</h2>
@@ -172,9 +173,9 @@
         </div>
 
         <div class="painel-topo">
-            <!-- Bloco 1: Cadastrar Funcionário com Turnos por Dia da Semana -->
+            <!-- Bloco 1: Cadastrar Funcionário, Função & Turnos da Semana -->
             <div class="bloco">
-                <h3>Cadastrar Funcionário & Turnos da Semana</h3>
+                <h3>Cadastrar Funcionário & Turnos</h3>
                 <form id="formFuncionario">
                     <div class="form-group">
                         <label>Nome Completo:</label>
@@ -183,6 +184,10 @@
                     <div class="form-group">
                         <label>Matrícula / ID do Crachá:</label>
                         <input type="text" id="matFunc" required placeholder="Ex: 202601">
+                    </div>
+                    <div class="form-group">
+                        <label>Função / Cargo:</label>
+                        <input type="text" id="funcaoFunc" required placeholder="Ex: Professor(a)">
                     </div>
                     <div class="form-group">
                         <label>Defina os turnos de cada dia:</label>
@@ -262,7 +267,7 @@
             <thead>
                 <tr>
                     <th>Matrícula</th>
-                    <th>Funcionário</th>
+                    <th>Funcionário / Função</th>
                     <th>Turno Escalado (para o dia)</th>
                     <th>Primeira Entrada</th>
                     <th>Última Saída / Status</th>
@@ -327,7 +332,6 @@
         const USUARIO_VALIDO = "pontoemez";
         const SENHA_VALIDA = "emez2026";
 
-        // Verifica ao carregar a página se já estava logado
         window.addEventListener('DOMContentLoaded', () => {
             const logado = localStorage.getItem('gestor_logado_emez');
             if (logado === 'true') {
@@ -344,7 +348,7 @@
             const s = document.getElementById('senhaLogin').value;
 
             if (u === USUARIO_VALIDO && s === SENHA_VALIDA) {
-                localStorage.setItem('gestor_logado_emez', 'true'); // Salva a sessão
+                localStorage.setItem('gestor_logado_emez', 'true');
                 document.getElementById('telaLogin').style.display = 'none';
                 document.getElementById('painelPrincipal').style.display = 'block';
                 document.body.style.alignItems = 'flex-start';
@@ -355,8 +359,8 @@
         });
 
         window.fazerLogout = function() {
-            localStorage.removeItem('gestor_logado_emez'); // Apaga a sessão
-            location.reload(); // Recarrega para voltar à tela de login
+            localStorage.removeItem('gestor_logado_emez');
+            location.reload();
         };
 
         const inputData = document.getElementById('dataFiltro');
@@ -597,7 +601,7 @@
 
             let filtrados = listaFuncionariosCache.filter(func => {
                 const atendeStatus = (filtroAtual === 'TODOS' || func.statusCalculado === filtroAtual);
-                const atendeBusca = func.nome.toLowerCase().includes(termoBusca) || func.matricula.toLowerCase().includes(termoBusca);
+                const atendeBusca = func.nome.toLowerCase().includes(termoBusca) || func.matricula.toLowerCase().includes(termoBusca) || (func.funcao && func.funcao.toLowerCase().includes(termoBusca));
                 return atendeStatus && atendeBusca;
             });
 
@@ -613,10 +617,12 @@
                     botaoJustificarHtml = `<button class="btn-acao btn-justificar" onclick="abrirModalObs('${func.matricula}', '${func.nome}')">Justificar</button>`;
                 }
 
+                const funcaoExibicao = func.funcao ? `<br><span class="funcao-badge">💼 ${func.funcao}</span>` : '';
+
                 html += `
                     <tr>
                         <td>${func.matricula}</td>
-                        <td><strong>${func.nome}</strong></td>
+                        <td><strong>${func.nome}</strong>${funcaoExibicao}</td>
                         <td>
                             <span class="escala-badge">📅 ${func.turnosDoDiaStr}</span>
                         </td>
@@ -656,12 +662,13 @@
         }
 
         window.exportarCSV = function() {
-            let csv = 'Matricula;Funcionario;TurnoDoDia;Primeira Entrada;Status\n';
+            let csv = 'Matricula;Funcionario;Funcao;TurnoDoDia;Primeira Entrada;Status\n';
             listaFuncionariosCache.forEach(f => {
                 if(f.statusCalculado === 'FOLGA') return;
                 let statusLimpo = f.saidaStr.replace(/<[^>]*>?/gm, '');
                 let entradaLimpa = f.entradaStr.replace(/<[^>]*>?/gm, '');
-                csv += `${f.matricula};${f.nome};${f.turnosDoDiaStr};${entradaLimpa};${statusLimpo}\n`;
+                let funcaoLimpa = f.funcao || 'Não informada';
+                csv += `${f.matricula};${f.nome};${funcaoLimpa};${f.turnosDoDiaStr};${entradaLimpa};${statusLimpo}\n`;
             });
 
             const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
@@ -678,6 +685,7 @@
             e.preventDefault();
             const nome = document.getElementById('nomeFunc').value;
             const matricula = document.getElementById('matFunc').value;
+            const funcao = document.getElementById('funcaoFunc').value;
 
             let escalaObj = {};
             ['seg', 'ter', 'qua', 'qui', 'sex'].forEach(dia => {
@@ -690,6 +698,7 @@
             const { error } = await supabase.from('funcionarios').insert([{ 
                 nome, 
                 matricula, 
+                funcao,
                 escala: JSON.stringify(escalaObj),
                 turno: 'Flexível Escola'
             }]);
