@@ -16,16 +16,15 @@
         .btn-login:hover { background: #0056b3; }
         .erro-login { color: #dc3545; font-size: 12px; margin-top: 10px; display: none; }
 
-        /* Container Principal do Painel (Fica oculto até logar) */
+        /* Container Principal do Painel */
         .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 1100px; display: none; }
         
-        /* Cabeçalho do Painel (Sem o brasão) */
         .painel-cabecalho-principal { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #eaeaea; padding-bottom: 15px; }
         .titulo-container { flex: 1; }
         h2 { text-align: left; color: #333; margin: 0 0 5px 0; }
         .subtitle { text-align: left; color: #666; margin: 0; font-size: 14px; }
         
-        /* Estilo do Dashboard de Indicadores Clicáveis */
+        /* Dashboard de Indicadores Clicáveis */
         .dashboard-cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 25px; }
         .card-stat { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .card-stat:hover { background: #e9ecef; border-color: #007bff; transform: translateY(-2px); }
@@ -65,18 +64,17 @@
         .btn-sair { background: #dc3545; padding: 8px 12px; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; font-weight: bold; }
         .btn-sair:hover { background: #c82333; }
 
-        /* Barra de Pesquisa e Filtro Ativo */
         .tabela-cabecalho { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .tabela-acoes-topo { display: flex; align-items: center; gap: 10px; }
         .input-busca { padding: 8px; width: 220px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
         .filtro-ativo-info { font-size: 13px; color: #007bff; font-weight: bold; display: none; align-items: center; gap: 5px; }
         .btn-limpar-filtro { background: none; border: none; color: #dc3545; cursor: pointer; font-weight: bold; font-size: 12px; text-decoration: underline; }
 
-        /* Estilo do Menu Dropdown da Engrenagem */
+        /* Menu Dropdown da Engrenagem */
         .dropdown { position: relative; display: inline-block; }
         .btn-engrenagem { background: #6c757d; }
         .btn-engrenagem:hover { background: #5a6268; }
-        .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #f9f9f9; min-width: 170px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10; border-radius: 4px; overflow: hidden; border: 1px solid #ddd; }
         .dropdown-content button { color: black; padding: 10px 12px; text-decoration: none; display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer; font-size: 13px; }
         .dropdown-content button:hover { background-color: #f1f1f1; }
         .dropdown-content .btn-excluir-item { color: #dc3545; font-weight: bold; }
@@ -94,16 +92,15 @@
         .btn-link:hover { background: #5a6268; }
 
         .escala-badge { background: #e2e3e5; color: #383d41; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; }
-        .funcao-badge { background: #e7f1ff; color: #0056b3; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 3px; }
 
-        /* Estilo dos Modais */
+        /* Modais */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 420px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .modal-content h3 { margin-top: 0; color: #333; font-size: 18px; margin-bottom: 15px; text-align: center; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .btn-cancelar { background: #6c757d; }
         .btn-cancelar:hover { background: #5a6268; }
-        .modal-relatorio { width: 600px; max-height: 80vh; overflow-y: auto; }
+        .modal-relatorio { width: 600px; }
         textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Arial, sans-serif; font-size: 13px; resize: vertical; height: 80px; }
     </style>
 </head>
@@ -126,7 +123,7 @@
         </form>
     </div>
 
-    <!-- PAINEL PRINCIPAL (APÓS LOGIN) -->
+    <!-- PAINEL PRINCIPAL -->
     <div class="container" id="painelPrincipal">
         <div class="menu-nav">
             <div class="menu-nav-links">
@@ -136,7 +133,6 @@
             <button class="btn-sair" onclick="fazerLogout()">Sair do Sistema</button>
         </div>
         
-        <!-- Cabeçalho Principal -->
         <div class="painel-cabecalho-principal">
             <div class="titulo-container">
                 <h2>Painel de Gestão - Escola Municipal Emiliano Zapata</h2>
@@ -144,7 +140,7 @@
             </div>
         </div>
 
-        <!-- Painel de Indicadores Clicáveis -->
+        <!-- Indicadores Clicáveis -->
         <div class="dashboard-cards">
             <div class="card-stat" id="card-todos" onclick="filtrarStatus('TODOS')">
                 <h4>Total Equipe</h4>
@@ -173,21 +169,17 @@
         </div>
 
         <div class="painel-topo">
-            <!-- Bloco 1: Cadastrar Funcionário, Função & Turnos da Semana -->
+            <!-- Cadastro de Funcionário -->
             <div class="bloco">
                 <h3>Cadastrar Funcionário & Turnos</h3>
                 <form id="formFuncionario">
                     <div class="form-group">
                         <label>Nome Completo:</label>
-                        <input type="text" id="nomeFunc" required placeholder="Ex: Prof. Carlos">
+                        <input type="text" id="nomeFunc" required placeholder="Ex: Carlos Silva">
                     </div>
                     <div class="form-group">
                         <label>Matrícula / ID do Crachá:</label>
                         <input type="text" id="matFunc" required placeholder="Ex: 202601">
-                    </div>
-                    <div class="form-group">
-                        <label>Função / Cargo:</label>
-                        <input type="text" id="funcaoFunc" required placeholder="Ex: Professor(a)">
                     </div>
                     <div class="form-group">
                         <label>Defina os turnos de cada dia:</label>
@@ -238,7 +230,7 @@
                 </form>
             </div>
 
-            <!-- Bloco 2: Filtro por Data -->
+            <!-- Filtro por Data -->
             <div class="bloco">
                 <h3>Selecionar Data de Gestão</h3>
                 <div class="form-group" style="margin-bottom: 15px;">
@@ -246,7 +238,7 @@
                     <input type="date" id="dataFiltro" onchange="carregarDados()">
                 </div>
                 <p style="font-size: 12px; color: #666; line-height: 1.4;">
-                    O sistema identifica automaticamente o dia da semana escolhido (segunda a sexta) e verifica se o funcionário estava escalado para Manhã, Tarde ou Noite naquele dia exato.
+                    O sistema identifica automaticamente o dia da semana escolhido e verifica se o funcionário estava escalado para Manhã, Tarde ou Noite naquele dia exato.
                 </p>
             </div>
         </div>
@@ -267,7 +259,7 @@
             <thead>
                 <tr>
                     <th>Matrícula</th>
-                    <th>Funcionário / Função</th>
+                    <th>Funcionário</th>
                     <th>Turno Escalado (para o dia)</th>
                     <th>Primeira Entrada</th>
                     <th>Última Saída / Status</th>
@@ -289,7 +281,7 @@
                 <input type="time" id="horaEntradaAjuste">
             </div>
             <div class="form-group">
-                <label>Saída:</label>
+                <label>Saída (Se vazio, fica 'Trabalhando'):</label>
                 <input type="time" id="horaSaidaAjuste">
             </div>
             <div class="modal-buttons">
@@ -311,6 +303,73 @@
                 <button type="button" class="btn btn-cancelar" onclick="fecharModalObs()">Cancelar</button>
                 <button type="button" class="btn" onclick="salvarObservacao()">Salvar Justificativa</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Funcionário -->
+    <div id="modalEditarFunc" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Editar Funcionário</h3>
+            <form id="formEditarFunc">
+                <input type="hidden" id="editMatriculaAntiga">
+                <div class="form-group">
+                    <label>Nome Completo:</label>
+                    <input type="text" id="editNome" required>
+                </div>
+                <div class="form-group">
+                    <label>Matrícula / ID do Crachá:</label>
+                    <input type="text" id="editMatricula" required>
+                </div>
+                <div class="form-group">
+                    <label>Turnos da Semana:</label>
+                    <div class="grade-semana">
+                        <div class="dia-linha">
+                            <span>Segunda:</span>
+                            <div class="dia-checks">
+                                <label><input type="checkbox" name="edit_seg" value="Manhã"> Manhã</label>
+                                <label><input type="checkbox" name="edit_seg" value="Tarde"> Tarde</label>
+                                <label><input type="checkbox" name="edit_seg" value="Noite"> Noite</label>
+                            </div>
+                        </div>
+                        <div class="dia-linha">
+                            <span>Terça:</span>
+                            <div class="dia-checks">
+                                <label><input type="checkbox" name="edit_ter" value="Manhã"> Manhã</label>
+                                <label><input type="checkbox" name="edit_ter" value="Tarde"> Tarde</label>
+                                <label><input type="checkbox" name="edit_ter" value="Noite"> Noite</label>
+                            </div>
+                        </div>
+                        <div class="dia-linha">
+                            <span>Quarta:</span>
+                            <div class="dia-checks">
+                                <label><input type="checkbox" name="edit_qua" value="Manhã"> Manhã</label>
+                                <label><input type="checkbox" name="edit_qua" value="Tarde"> Tarde</label>
+                                <label><input type="checkbox" name="edit_qua" value="Noite"> Noite</label>
+                            </div>
+                        </div>
+                        <div class="dia-linha">
+                            <span>Quinta:</span>
+                            <div class="dia-checks">
+                                <label><input type="checkbox" name="edit_qui" value="Manhã"> Manhã</label>
+                                <label><input type="checkbox" name="edit_qui" value="Tarde"> Tarde</label>
+                                <label><input type="checkbox" name="edit_qui" value="Noite"> Noite</label>
+                            </div>
+                        </div>
+                        <div class="dia-linha">
+                            <span>Sexta:</span>
+                            <div class="dia-checks">
+                                <label><input type="checkbox" name="edit_sex" value="Manhã"> Manhã</label>
+                                <label><input type="checkbox" name="edit_sex" value="Tarde"> Tarde</label>
+                                <label><input type="checkbox" name="edit_sex" value="Noite"> Noite</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-cancelar" onclick="fecharModalEditar()">Cancelar</button>
+                    <button type="submit" class="btn">Salvar Alterações</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -494,14 +553,13 @@
 
             listaFuncionariosCache = funcionarios.map(func => {
                 const regs = regsPorMatricula[func.matricula] || [];
-                let entradaStr = '-';
                 let saidaStr = '';
                 
                 let escalaObj = {};
                 try {
-                    escalaObj = typeof func.escala === 'string' ? JSON.parse(func.escala) : (func.escala || { seg: ['Manhã'], ter: ['Manhã'], qua: ['Manhã'], qui: ['Manhã'], sex: ['Manhã'] });
+                    escalaObj = typeof func.escala === 'string' ? JSON.parse(func.escala) : (func.escala || {});
                 } catch(e) {
-                    escalaObj = { seg: ['Manhã'], ter: ['Manhã'], qua: ['Manhã'], qui: ['Manhã'], sex: ['Manhã'] };
+                    escalaObj = {};
                 }
 
                 const turnosDoDia = obterTurnosDoDia(escalaObj, diaSemanaIndex);
@@ -537,20 +595,21 @@
                     }
 
                     if (regs[0].tipo === 'Atestado') {
-                        entradaStr = 'Atestado Médico';
+                        let entradaStr = 'Atestado Médico';
                         saidaStr = '<span style="color: #6f42c1; font-weight: bold;">Afastado (Atestado)</span>';
                         statusCalculado = 'ATESTADO';
+                        return { ...func, turnosDoDiaStr: turnosDoDia.join(' e '), entradaStr, saidaStr, statusCalculado };
                     } else if (!regs[0].tipo.startsWith('Nota:')) {
                         const primeiraEntradaObj = new Date(regs[0].data_hora);
-                        const horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                        let horaFormatada = primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                         
                         const atrasoDetectado = verificarAtrasoEscalaEscolar(turnosDoDia, primeiraEntradaObj);
                         
                         if (atrasoDetectado) {
-                            entradaStr = `${horaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>`;
+                            let entradaStr = `${horaFormatada} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>`;
                             statusCalculado = 'ATRASADO';
                         } else {
-                            entradaStr = horaFormatada;
+                            let entradaStr = horaFormatada;
                             statusCalculado = 'CONCLUIDO';
                         }
 
@@ -565,10 +624,19 @@
                             
                             horasTrabTexto = `(${horas}h ${minutos}m)`;
                             saidaStr = `${horaSaidaFormatada} <span style="color: #28a745; font-weight: bold;">(Concluído)</span> ${horasTrabTexto}`;
+                            statusCalculado = atrasoDetectado ? 'ATRASADO' : 'CONCLUIDO';
                         } else {
                             saidaStr = '<span style="color: #17a2b8; font-weight: bold;">Trabalhando (Em aberto)</span>';
                             statusCalculado = 'TRABALHANDO';
                         }
+                        
+                        return {
+                            ...func,
+                            turnosDoDiaStr: turnosDoDia.join(' e '),
+                            entradaStr: atrasoDetectado ? `${primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})} <span style="background: #ffc107; color: #000; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">⚠️ Atrasado</span>` : primeiraEntradaObj.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+                            saidaStr,
+                            statusCalculado
+                        };
                     }
                 } else {
                     saidaStr = '<span style="color: #dc3545; font-weight: bold;">Falta</span>';
@@ -578,7 +646,8 @@
                 return {
                     ...func,
                     turnosDoDiaStr: turnosDoDia.join(' e '),
-                    entradaStr, saidaStr,
+                    entradaStr: '-',
+                    saidaStr,
                     statusCalculado
                 };
             });
@@ -595,56 +664,56 @@
             renderizarTabela();
         };
 
+        function atualizarIndicadores(t, trab, conc, atraso, falta, atestado) {
+            document.getElementById('indTotal').innerText = t;
+            document.getElementById('indTrabalhando').innerText = trab;
+            document.getElementById('indConcluidos').innerText = conc;
+            document.getElementById('indAtrasados').innerText = atraso;
+            document.getElementById('indFaltas').innerText = falta;
+            document.getElementById('indAtestados').innerText = atestado;
+        }
+
         window.renderizarTabela = function() {
             const corpo = document.getElementById('corpoTabela');
             const termoBusca = document.getElementById('inputBusca').value.toLowerCase();
 
-            let filtrados = listaFuncionariosCache.filter(func => {
-                const atendeStatus = (filtroAtual === 'TODOS' || func.statusCalculado === filtroAtual);
-                const atendeBusca = func.nome.toLowerCase().includes(termoBusca) || func.matricula.toLowerCase().includes(termoBusca) || (func.funcao && func.funcao.toLowerCase().includes(termoBusca));
-                return atendeStatus && atendeBusca;
+            let dadosFiltrados = listaFuncionariosCache.filter(func => {
+                const matchStatus = (filtroAtual === 'TODOS' || func.statusCalculado === filtroAtual);
+                const matchBusca = (func.nome.toLowerCase().includes(termoBusca) || func.matricula.toLowerCase().includes(termoBusca));
+                return matchStatus && matchBusca;
             });
 
-            if (filtrados.length === 0) {
-                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">Nenhum funcionário encontrado com os filtros atuais.</td></tr>';
+            if (dadosFiltrados.length === 0) {
+                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro encontrado para este filtro.</td></tr>';
                 return;
             }
 
             let html = '';
-            filtrados.forEach(func => {
-                let botaoJustificarHtml = '';
-                if (func.statusCalculado === 'FALTA') {
-                    botaoJustificarHtml = `<button class="btn-acao btn-justificar" onclick="abrirModalObs('${func.matricula}', '${func.nome}')">Justificar</button>`;
-                }
-
-                const funcaoExibicao = func.funcao ? `<br><span class="funcao-badge">💼 ${func.funcao}</span>` : '';
-
+            dadosFiltrados.forEach(func => {
                 html += `
                     <tr>
-                        <td>${func.matricula}</td>
-                        <td><strong>${func.nome}</strong>${funcaoExibicao}</td>
-                        <td>
-                            <span class="escala-badge">📅 ${func.turnosDoDiaStr}</span>
-                        </td>
+                        <td><strong>${func.matricula}</strong></td>
+                        <td>${func.nome}</td>
+                        <td><span class="escala-badge">${func.turnosDoDiaStr}</span></td>
                         <td>${func.entradaStr}</td>
                         <td>${func.saidaStr}</td>
                         <td>
-                            <button class="btn-acao" onclick="abrirModalAjuste('${func.matricula}', '${func.nome}')">Ajustar</button>
-                            <button class="btn-acao btn-atestado" onclick="lancarAtestado('${func.matricula}', '${func.nome}')">Atestado</button>
-                            ${botaoJustificarHtml}
+                            <button class="btn-acao" onclick="abrirModalAjuste('${func.matricula}', '${func.nome}')" title="Ajustar horários de ponto">⏱️ Ajustar</button>
+                            <button class="btn-acao btn-atestado" onclick="lancarAtestado('${func.matricula}')" title="Lançar atestado médico">🏥 Atestado</button>
+                            <button class="btn-acao btn-justificar" onclick="abrirModalObs('${func.matricula}', '${func.nome}')" title="Justificar falta">📝 Justificar</button>
                             
                             <div class="dropdown" id="dropdown-${func.matricula}">
                                 <button class="btn-acao btn-engrenagem" onclick="toggleMenu(event, '${func.matricula}')">⚙️</button>
                                 <div class="dropdown-content">
-                                    <button onclick="abrirRelatorioIndividual('${func.matricula}', '${func.nome}')">📊 Relatório Individual</button>
-                                    <button class="btn-excluir-item" onclick="excluirFuncionario('${func.matricula}', '${func.nome}')">🗑️ Excluir Cadastro</button>
+                                    <button onclick="abrirModalEditar('${func.matricula}')">✏️ Editar Cadastro</button>
+                                    <button onclick="verRelatorioIndividual('${func.matricula}', '${func.nome}')">📄 Relatório Individual</button>
+                                    <button class="btn-excluir-item" onclick="excluirFuncionario('${func.matricula}')">🗑️ Excluir Cadastro</button>
                                 </div>
                             </div>
                         </td>
                     </tr>
                 `;
             });
-
             corpo.innerHTML = html;
         };
 
@@ -652,194 +721,176 @@
             renderizarTabela();
         };
 
-        function atualizarIndicadores(total, trabalhando, concluidos, atrasados, faltas, atestados) {
-            document.getElementById('indTotal').innerText = total;
-            document.getElementById('indTrabalhando').innerText = trabalhando;
-            document.getElementById('indConcluidos').innerText = concluidos;
-            document.getElementById('indAtrasados').innerText = atrasados;
-            document.getElementById('indFaltas').innerText = faltas;
-            document.getElementById('indAtestados').innerText = atestados;
-        }
-
-        window.exportarCSV = function() {
-            let csv = 'Matricula;Funcionario;Funcao;TurnoDoDia;Primeira Entrada;Status\n';
-            listaFuncionariosCache.forEach(f => {
-                if(f.statusCalculado === 'FOLGA') return;
-                let statusLimpo = f.saidaStr.replace(/<[^>]*>?/gm, '');
-                let entradaLimpa = f.entradaStr.replace(/<[^>]*>?/gm, '');
-                let funcaoLimpa = f.funcao || 'Não informada';
-                csv += `${f.matricula};${f.nome};${funcaoLimpa};${f.turnosDoDiaStr};${entradaLimpa};${statusLimpo}\n`;
-            });
-
-            const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `relatorio_ponto_${inputData.value}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        };
-
-        document.getElementById('formFuncionario').addEventListener('submit', async (e) => {
+        document.getElementById('formFuncionario').addEventListener('submit', async function(e) {
             e.preventDefault();
             const nome = document.getElementById('nomeFunc').value;
             const matricula = document.getElementById('matFunc').value;
-            const funcao = document.getElementById('funcaoFunc').value;
 
-            let escalaObj = {};
-            ['seg', 'ter', 'qua', 'qui', 'sex'].forEach(dia => {
-                const checkboxes = document.querySelectorAll(`input[name="${dia}"]:checked`);
-                let turnosDia = [];
-                checkboxes.forEach(cb => turnosDia.push(cb.value));
-                escalaObj[dia] = turnosDia;
-            });
+            const escala = {
+                seg: Array.from(document.querySelectorAll('input[name="seg"]:checked')).map(cb => cb.value),
+                ter: Array.from(document.querySelectorAll('input[name="ter"]:checked')).map(cb => cb.value),
+                qua: Array.from(document.querySelectorAll('input[name="qua"]:checked')).map(cb => cb.value),
+                qui: Array.from(document.querySelectorAll('input[name="qui"]:checked')).map(cb => cb.value),
+                sex: Array.from(document.querySelectorAll('input[name="sex"]:checked')).map(cb => cb.value),
+                sab: [],
+                dom: []
+            };
 
-            const { error } = await supabase.from('funcionarios').insert([{ 
-                nome, 
-                matricula, 
-                funcao,
-                escala: JSON.stringify(escalaObj),
-                turno: 'Flexível Escola'
+            const { error } = await supabase.from('funcionarios').insert([{
+                matricula,
+                nome,
+                escala: JSON.stringify(escala)
             }]);
 
             if (error) {
-                alert('Erro ao cadastrar funcionário: ' + error.message);
-            } else {
-                alert('Funcionário cadastrado com sucesso!');
-                document.getElementById('formFuncionario').reset();
-                carregarDados();
-            }
-        });
-
-        window.excluirFuncionario = async function(matricula, nome) {
-            const confirmar = confirm(`Tem certeza que deseja excluir o funcionário ${nome} (Matrícula: ${matricula})?`);
-            if (!confirmar) return;
-
-            await supabase.from('registros_ponto').delete().eq('matricula', matricula);
-            const { error: errFunc } = await supabase.from('funcionarios').delete().eq('matricula', matricula);
-
-            if (errFunc) {
-                alert('Erro ao excluir funcionário: ' + errFunc.message);
-            } else {
-                alert('Funcionário excluído com sucesso!');
-                carregarDados();
-            }
-        };
-
-        window.abrirRelatorioIndividual = async function(matricula, nome) {
-            document.getElementById('tituloModalRelatorio').innerText = `Relatório: ${nome} (Matrícula: ${matricula})`;
-            const containerRel = document.getElementById('conteudoRelatorioIndividual');
-            containerRel.innerHTML = 'Buscando histórico completo...';
-            document.getElementById('modalRelatorio').style.display = 'flex';
-
-            const { data: registros, error } = await supabase
-                .from('registros_ponto')
-                .select('*')
-                .eq('matricula', matricula)
-                .order('data_hora', { ascending: false });
-
-            if (error || !registros || registros.length === 0) {
-                containerRel.innerHTML = '<p style="text-align: center; color: #666;">Nenhum registro encontrado.</p>';
+                alert('Erro ao cadastrar funcionário. Verifique se a matrícula já existe.');
+                console.error(error);
                 return;
             }
 
-            let html = `<table style="width:100%; border-collapse: collapse; margin-top: 10px;"><thead><tr style="background: #f1f1f1;"><th style="padding: 8px; border: 1px solid #ddd;">Data e Hora</th><th style="padding: 8px; border: 1px solid #ddd;">Tipo / Nota</th></tr></thead><tbody>`;
-            registros.forEach(r => {
-                const dataFormatada = new Date(r.data_hora).toLocaleString('pt-BR');
-                html += `<tr><td style="padding: 8px; border: 1px solid #ddd;">${dataFormatada}</td><td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${r.tipo}</td></tr>`;
-            });
-            html += `</tbody></table>`;
-            containerRel.innerHTML = html;
-        };
+            alert('Funcionário cadastrado com sucesso!');
+            document.getElementById('formFuncionario').reset();
+            carregarDados();
+        });
 
-        window.fecharModalRelatorio = function() {
-            document.getElementById('modalRelatorio').style.display = 'none';
-        };
-
-        window.abrirModalAjuste = async function(matricula, nome) {
-            funcionarioSelecionadoParaAjuste = { matricula, nome };
+        window.abrirModalAjuste = function(matricula, nome) {
+            funcionarioSelecionadoParaAjuste = matricula;
             document.getElementById('tituloModalAjuste').innerText = `Ajustar Ponto: ${nome}`;
             document.getElementById('horaEntradaAjuste').value = '';
             document.getElementById('horaSaidaAjuste').value = '';
-
-            const dataSelecionadaStr = inputData.value;
-            const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
-            const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
-
-            const { data: regs } = await supabase
-                .from('registros_ponto')
-                .select('*')
-                .eq('matricula', matricula)
-                .gte('data_hora', inicioDia.toISOString())
-                .lte('data_hora', fimDia.toISOString())
-                .order('data_hora', { ascending: true });
-
-            if (regs && regs.length > 0) {
-                if (regs[0] && regs[0].tipo !== 'Atestado' && !regs[0].tipo.startsWith('Nota:')) {
-                    document.getElementById('horaEntradaAjuste').value = new Date(regs[0].data_hora).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                }
-                const ult = regs.filter(r => r.tipo === 'Encerrado');
-                if (ult.length > 0) {
-                    document.getElementById('horaSaidaAjuste').value = new Date(ult[0].data_hora).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                }
-            }
-
             document.getElementById('modalAjuste').style.display = 'flex';
         };
 
         window.fecharModal = function() {
             document.getElementById('modalAjuste').style.display = 'none';
-            funcionarioSelecionadoParaAjuste = null;
         };
 
         window.salvarAjustePonto = async function() {
-            if (!funcionarioSelecionadoParaAjuste) return;
-            const dataSelecionadaStr = inputData.value;
-            const matricula = funcionarioSelecionadoParaAjuste.matricula;
+            const dataStr = inputData.value;
             const horaEntrada = document.getElementById('horaEntradaAjuste').value;
             const horaSaida = document.getElementById('horaSaidaAjuste').value;
 
-            const inicioDia = new Date(dataSelecionadaStr + 'T00:00:00');
-            const fimDia = new Date(dataSelecionadaStr + 'T23:59:59');
+            if (!horaEntrada && !horaSaida) {
+                alert('Preencha pelo menos um horário.');
+                return;
+            }
 
-            await supabase.from('registros_ponto').delete().eq('matricula', matricula).gte('data_hora', inicioDia.toISOString()).lte('data_hora', fimDia.toISOString());
+            await supabase.from('registros_ponto').delete().match({ matricula: funcionarioSelecionadoParaAjuste })
+                .gte('data_hora', dataStr + 'T00:00:00')
+                .lte('data_hora', dataStr + 'T23:59:59');
 
             let novosRegistros = [];
-            if (horaEntrada) novosRegistros.push({ matricula, tipo: 'Trabalhando', data_hora: new Date(`${dataSelecionadaStr}T${horaEntrada}:00`).toISOString() });
-            if (horaSaida) novosRegistros.push({ matricula, tipo: 'Encerrado', data_hora: new Date(`${dataSelecionadaStr}T${horaSaida}:00`).toISOString() });
+            if (horaEntrada) {
+                novosRegistros.push({
+                    matricula: funcionarioSelecionadoParaAjuste,
+                    tipo: 'Entrada (Ajuste)',
+                    data_hora: `${dataStr}T${horaEntrada}:00`
+                });
+            }
+            if (horaSaida) {
+                novosRegistros.push({
+                    matricula: funcionarioSelecionadoParaAjuste,
+                    tipo: 'Saída (Ajuste)',
+                    data_hora: `${dataStr}T${horaSaida}:00`
+                });
+            }
 
-            if (novosRegistros.length > 0) await supabase.from('registros_ponto').insert(novosRegistros);
+            const { error } = await supabase.from('registros_ponto').insert(novosRegistros);
+            if (error) {
+                alert('Erro ao salvar ajuste.');
+                console.error(error);
+                return;
+            }
 
-            await supabase.from('registros_ponto').insert([{
-                matricula: matricula,
-                tipo: `Nota: [Auditoria] Ponto ajustado manualmente pela Gestão`,
-                data_hora: new Date().toISOString()
-            }]);
-
-            alert('Ponto ajustado com sucesso!');
             fecharModal();
             carregarDados();
         };
 
-        window.lancarAtestado = async function(matricula, nome) {
-            const dataSelecionadaStr = inputData.value;
-            if (!confirm(`Deseja lançar Atestado Médico para ${nome}?`)) return;
+        window.abrirModalEditar = function(matricula) {
+            const func = listaFuncionariosCache.find(f => f.matricula === matricula);
+            if (!func) return;
 
-            await supabase.from('registros_ponto').insert([{ matricula, tipo: 'Atestado', data_hora: new Date(`${dataSelecionadaStr}T08:00:00`).toISOString() }]);
-            
-            await supabase.from('registros_ponto').insert([{
-                matricula: matricula,
-                tipo: `Nota: [Auditoria] Atestado médico lançado pela Gestão`,
-                data_hora: new Date().toISOString()
+            document.getElementById('editMatriculaAntiga').value = func.matricula;
+            document.getElementById('editMatricula').value = func.matricula;
+            document.getElementById('editNome').value = func.nome;
+
+            let escalaObj = {};
+            try {
+                escalaObj = typeof func.escala === 'string' ? JSON.parse(func.escala) : (func.escala || {});
+            } catch(e) { escalaObj = {}; }
+
+            ['seg', 'ter', 'qua', 'qui', 'sex'].forEach(dia => {
+                const turnosDoDia = escalaObj[dia] || [];
+                document.querySelectorAll(`input[name="edit_${dia}"]`).forEach(cb => {
+                    cb.checked = turnosDoDia.includes(cb.value);
+                });
+            });
+
+            document.getElementById('modalEditarFunc').style.display = 'flex';
+        };
+
+        window.fecharModalEditar = function() {
+            document.getElementById('modalEditarFunc').style.display = 'none';
+        };
+
+        document.getElementById('formEditarFunc').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const matriculaAntiga = document.getElementById('editMatriculaAntiga').value;
+            const novaMatricula = document.getElementById('editMatricula').value;
+            const nome = document.getElementById('editNome').value;
+
+            const escala = {
+                seg: Array.from(document.querySelectorAll('input[name="edit_seg"]:checked')).map(cb => cb.value),
+                ter: Array.from(document.querySelectorAll('input[name="edit_ter"]:checked')).map(cb => cb.value),
+                qua: Array.from(document.querySelectorAll('input[name="edit_qua"]:checked')).map(cb => cb.value),
+                qui: Array.from(document.querySelectorAll('input[name="edit_qui"]:checked')).map(cb => cb.value),
+                sex: Array.from(document.querySelectorAll('input[name="edit_sex"]:checked')).map(cb => cb.value),
+                sab: [],
+                dom: []
+            };
+
+            const { error } = await supabase.from('funcionarios')
+                .update({ matricula: novaMatricula, nome, escala: JSON.stringify(escala) })
+                .eq('matricula', matriculaAntiga);
+
+            if (error) {
+                alert('Erro ao atualizar funcionário. Verifique se a nova matrícula já está em uso.');
+                console.error(error);
+                return;
+            }
+
+            if (matriculaAntiga !== novaMatricula) {
+                await supabase.from('registros_ponto').update({ matricula: novaMatricula }).eq('matricula', matriculaAntiga);
+            }
+
+            alert('Funcionário atualizado com sucesso!');
+            fecharModalEditar();
+            carregarDados();
+        });
+
+        window.lancarAtestado = async function(matricula) {
+            if (!confirm('Deseja lançar atestado médico para este funcionário na data selecionada?')) return;
+            const dataStr = inputData.value;
+
+            await supabase.from('registros_ponto').delete().match({ matricula })
+                .gte('data_hora', dataStr + 'T00:00:00')
+                .lte('data_hora', dataStr + 'T23:59:59');
+
+            const { error } = await supabase.from('registros_ponto').insert([{
+                matricula,
+                tipo: 'Atestado',
+                data_hora: `${dataStr}T08:00:00`
             }]);
 
-            alert('Atestado lançado com sucesso!');
+            if (error) {
+                alert('Erro ao registrar atestado.');
+                return;
+            }
             carregarDados();
         };
 
         window.abrirModalObs = function(matricula, nome) {
-            funcionarioSelecionadoParaObs = { matricula, nome };
+            funcionarioSelecionadoParaObs = matricula;
             document.getElementById('tituloModalObs').innerText = `Justificar Falta: ${nome}`;
             document.getElementById('textoObs').value = '';
             document.getElementById('modalObs').style.display = 'flex';
@@ -847,27 +898,107 @@
 
         window.fecharModalObs = function() {
             document.getElementById('modalObs').style.display = 'none';
-            funcionarioSelecionadoParaObs = null;
         };
 
         window.salvarObservacao = async function() {
-            if (!funcionarioSelecionadoParaObs) return;
-            const dataSelecionadaStr = inputData.value;
-            const texto = document.getElementById('textoObs').value;
+            const dataStr = inputData.value;
+            const texto = document.getElementById('textoObs').value.trim();
             if (!texto) {
-                alert('Escreva a justificativa da falta.');
+                alert('Digite a justificativa.');
                 return;
             }
 
-            await supabase.from('registros_ponto').insert([{
-                matricula: funcionarioSelecionadoParaObs.matricula,
+            await supabase.from('registros_ponto').delete().match({ matricula: funcionarioSelecionadoParaObs })
+                .gte('data_hora', dataStr + 'T00:00:00')
+                .lte('data_hora', dataStr + 'T23:59:59');
+
+            const { error } = await supabase.from('registros_ponto').insert([{
+                matricula: funcionarioSelecionadoParaObs,
                 tipo: `Nota: ${texto}`,
-                data_hora: new Date(`${dataSelecionadaStr}T12:00:00`).toISOString()
+                data_hora: `${dataStr}T08:00:00`
             }]);
 
-            alert('Justificativa salva com sucesso!');
+            if (error) {
+                alert('Erro ao salvar justificativa.');
+                return;
+            }
+
             fecharModalObs();
             carregarDados();
+        };
+
+        window.excluirFuncionario = async function(matricula) {
+            if (!confirm('Tem certeza que deseja excluir este funcionário e todos os seus registros de ponto?')) return;
+
+            await supabase.from('registros_ponto').delete().match({ matricula });
+            const { error } = await supabase.from('funcionarios').delete().match({ matricula });
+
+            if (error) {
+                alert('Erro ao excluir funcionário.');
+                return;
+            }
+            carregarDados();
+        };
+
+        window.verRelatorioIndividual = async function(matricula, nome) {
+            document.getElementById('tituloModalRelatorio').innerText = `Relatório Individual: ${nome}`;
+            document.getElementById('conteudoRelatorioIndividual').innerHTML = 'Carregando histórico...';
+            document.getElementById('modalRelatorio').style.display = 'flex';
+
+            const { data: regs, error } = await supabase.from('registros_ponto')
+                .select('*')
+                .eq('matricula', matricula)
+                .order('data_hora', { ascending: false })
+                .limit(30);
+
+            if (error) {
+                document.getElementById('conteudoRelatorioIndividual').innerHTML = 'Erro ao carregar relatório.';
+                return;
+            }
+
+            if (!regs || regs.length === 0) {
+                document.getElementById('conteudoRelatorioIndividual').innerHTML = '<p>Nenhum registro encontrado para este funcionário.</p>';
+                return;
+            }
+
+            let html = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f1f1f1;"><th style="padding: 6px;">Data/Hora</th><th style="padding: 6px;">Ocorrência / Tipo</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+            regs.forEach(r => {
+                const dt = new Date(r.data_hora).toLocaleString('pt-BR');
+                html += `<tr><td style="padding: 6px; border-bottom: 1px solid #ddd;">${dt}</td><td style="padding: 6px; border-bottom: 1px solid #ddd;">${r.tipo}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            document.getElementById('conteudoRelatorioIndividual').innerHTML = html;
+        };
+
+        window.fecharModalRelatorio = function() {
+            document.getElementById('modalRelatorio').style.display = 'none';
+        };
+
+        window.exportarCSV = function() {
+            if (listaFuncionariosCache.length === 0) {
+                alert('Não há dados para exportar.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,Matricula;Nome;TurnoEscalado;PrimeiraEntrada;Status\n";
+            listaFuncionariosCache.forEach(f => {
+                let linha = `"${f.matricula}";"${f.nome}";"${f.turnosDoDiaStr}";"${f.entradaStr.replace(/<[^>]*>?/gm, '')}";"${f.statusCalculado}"\n`;
+                csvContent += linha;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `ponto_emez_${inputData.value}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
     </script>
 </body>
