@@ -2,203 +2,519 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>CheckPonto - Relatório e Impressão de Ponto</title>
+    <title>Relatórios e Impressão - Escola Municipal Emiliano Zapata</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 900px; }
-        h2 { text-align: center; color: #333; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-size: 14px; }
-        
-        .filtros { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: flex; gap: 15px; align-items: flex-end; border: 1px solid #ddd; }
-        .filtros div { display: flex; flex-direction: column; flex: 1; }
-        .filtros label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
-        .filtros input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        
-        .btn-acao { padding: 9px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; height: 38px; }
-        .btn-acao:hover { background: #0056b3; }
-        .btn-imprimir { background: #28a745; }
-        .btn-imprimir:hover { background: #218838; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
-        th { background-color: #343a40; color: white; }
-        tr:hover { background-color: #f1f1f1; }
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto; }
         
         .menu-nav { margin-bottom: 20px; display: flex; gap: 10px; }
         .btn-link { padding: 8px 12px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; }
         .btn-link:hover { background: #5a6268; }
 
-        /* Estilo específico para quando mandar imprimir (oculta menus e botões) */
+        h2 { color: #007bff; margin-top: 0; margin-bottom: 5px; }
+        .subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
+
+        .bloco-relatorio { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .bloco-relatorio h3 { margin-top: 0; color: #343a40; font-size: 16px; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 8px; display: inline-block; }
+
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        select, input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+
+        .btn { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
+        .btn:hover { background: #0056b3; }
+        .btn-imprimir { background: #28a745; }
+        .btn-imprimir:hover { background: #218838; }
+
+        /* Estilo específico para a Impressão no padrão da folha de ponto oficial */
         @media print {
-            body { background: white; padding: 0; }
-            .container { box-shadow: none; width: 100%; padding: 0; }
-            .menu-nav, .filtros, .nao-imprimir { display: none !important; }
-            h2 { margin-top: 0; }
+            body { background: white; padding: 0; font-size: 10pt; color: #000; }
+            .container, .menu-nav, .bloco-relatorio, form, button, .nao-imprimir { display: none !important; }
+            #areaImpressao { display: block !important; width: 100%; margin: 0; padding: 0; }
+            
+            .pagina-folha-ponto {
+                page-break-after: always;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px;
+            }
+            .pagina-folha-ponto:last-child {
+                page-break-after: avoid;
+            }
+
+            .tabela-ponto-padrao {
+                width: 100%;
+                border-collapse: collapse;
+                border: 1px solid #000;
+                font-size: 9pt;
+            }
+
+            .tabela-ponto-padrao th, .tabela-ponto-padrao td {
+                border: 1px solid #000;
+                padding: 4px 6px;
+                text-align: center;
+            }
+
+            .tabela-ponto-padrao th {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .fim-semana {
+                background-color: #dcdcdc !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .assinatura-rodape {
+                margin-top: 30px;
+                display: flex;
+                justify-content: space-between;
+                page-break-inside: avoid;
+            }
+            .bloco-assinatura-ponto {
+                text-align: center;
+                width: 40%;
+                border-top: 1px solid #000;
+                padding-top: 5px;
+                margin: 0 auto;
+                font-size: 10pt;
+            }
         }
+
+        #areaImpressao { display: none; }
     </style>
 </head>
 <body>
+
     <div class="container">
         <div class="menu-nav">
-            <a href="acompanhamento.html" class="btn-link">← Voltar para Gestão</a>
-            <button onclick="window.print()" class="btn-acao btn-imprimir">Imprimir Relatório</button>
-        </div>
-        
-        <h2>Relatório de Frequência por Período</h2>
-        <div class="subtitle">Consolidado de registros e atestados da equipe</div>
-
-        <div class="filtros">
-            <div>
-                <label for="dataInicio">Data Inicial:</label>
-                <input type="date" id="dataInicio">
-            </div>
-            <div>
-                <label for="dataFim">Data Final:</label>
-                <input type="date" id="dataFim">
-            </div>
-            <div>
-                <button type="button" class="btn-acao" onclick="carregarRelatorio()">Gerar Relatório</button>
-            </div>
+            <a href="acompanhamento.html" class="btn-link">← Voltar para o Acompanhamento</a>
         </div>
 
-        <table id="tabelaRelatorio">
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Funcionário</th>
-                    <th>Matrícula</th>
-                    <th>Turno</th>
-                    <th>Primeira Entrada</th>
-                    <th>Última Saída / Status</th>
-                </tr>
-            </thead>
-            <tbody id="corpoRelatorio">
-                <tr><td colspan="6" style="text-align: center;">Selecione o período e clique em "Gerar Relatório".</td></tr>
-            </tbody>
-        </table>
+        <h2>Central de Relatórios e Impressões</h2>
+        <div class="subtitle">Geração de relatórios gerenciais, listas de presença e listagens de funcionários.</div>
+
+        <!-- Bloco 1: Relatório de Frequência / Ponto -->
+        <div class="bloco-relatorio">
+            <h3>Relatório de Folha de Ponto Mensal (Padrão Oficial)</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Selecione o Mês e Ano:</label>
+                    <input type="month" id="mesAnoPonto">
+                </div>
+                <div class="form-group">
+                    <label>Modo de Impressão:</label>
+                    <select id="modoFolhaMensal">
+                        <option value="INDIVIDUAL">Funcionário Específico</option>
+                        <option value="TODOS">Imprimir Folha de TODOS os Funcionários</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" id="grupoFuncionarioMensal">
+                    <label>Selecione o Funcionário:</label>
+                    <select id="selectFuncionarioMensal">
+                        <option value="">Carregando funcionários...</option>
+                    </select>
+                </div>
+                <button class="btn btn-imprimir" onclick="gerarFolhaPontoMensal()">🖨️ Imprimir Folha(s) de Ponto</button>
+            </div>
+        </div>
+
+        <!-- Bloco 2: Lista de Presença e Funcionários -->
+        <div class="bloco-relatorio">
+            <h3>Listas de Funcionários e Folhas de Presença</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo de Documento:</label>
+                    <select id="tipoDocumentoLista" onchange="tratarMudancaTipoDoc()">
+                        <option value="FUNCIONARIOS">Listagem Cadastral de Funcionários</option>
+                        <option value="PRESENCA">Lista de Presença (Reuniões / Eventos)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="grupoOpcaoImpressao">
+                    <label>Modo de Impressão:</label>
+                    <select id="modoImpressaoLista" onchange="tratarMudancaModo()">
+                        <option value="GERAL">Lista Geral (Todos juntos)</option>
+                        <option value="FUNCAO">Separado por Funções / Cargos</option>
+                    </select>
+                </div>
+                <div class="form-group" id="grupoFuncaoUnica" style="display: none;">
+                    <label>Selecione a Função Específica:</label>
+                    <select id="selectFuncaoUnica">
+                        <option value="">Todas as funções separadamente</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row" id="linhaCamposExtras" style="display: flex;">
+                <div class="form-group" id="campoTituloEvento" style="display: none;">
+                    <label>Título do Evento / Reunião para o Cabeçalho:</label>
+                    <input type="text" id="inputTituloEvento" placeholder="Ex: Reunião Pedagógica - 1º Semestre">
+                </div>
+                <div class="form-group" id="campoDataEvento" style="display: none;">
+                    <label>Data do Evento:</label>
+                    <input type="date" id="inputDataEvento">
+                </div>
+            </div>
+            <button class="btn btn-imprimir" onclick="gerarDocumentoListagem()">🖨️ Gerar e Imprimir Documento</button>
+        </div>
     </div>
+
+    <!-- ÁREA OCULTA UTILIZADA PARA IMPRESSÃO -->
+    <div id="areaImpressao"></div>
 
     <script type="module">
         import { supabase } from './services/supabase.js';
 
-        const hoje = new Date();
-        const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        
-        document.getElementById('dataInicio').valueAsDate = primeiroDiaMes;
-        document.getElementById('dataFim').valueAsDate = hoje;
+        const dataAtual = new Date();
+        const anoAtual = dataAtual.getFullYear();
+        const mesAtualStr = String(dataAtual.getMonth() + 1).padStart(2, '0');
+        document.getElementById('mesAnoPonto').value = `${anoAtual}-${mesAtualStr}`;
+        document.getElementById('inputDataEvento').value = dataAtual.toISOString().split('T')[0];
 
-        window.carregarRelatorio = async function() {
-            const dataInicioStr = document.getElementById('dataInicio').value;
-            const dataFimStr = document.getElementById('dataFim').value;
+        let cacheFuncionariosGlobal = [];
 
-            if (!dataInicioStr || !dataFimStr) {
-                alert('Selecione a data inicial e final.');
-                return;
+        window.addEventListener('DOMContentLoaded', async () => {
+            await carregarFuncionariosCache();
+            popularSelectFuncoes();
+            popularSelectFuncionariosMensal();
+        });
+
+        async function carregarFuncionariosCache() {
+            const { data, error } = await supabase.from('funcionarios').select('*').order('nome', { ascending: true });
+            if (!error && data) {
+                cacheFuncionariosGlobal = data.map(f => {
+                    let escalaObj = {};
+                    let funcaoSalva = 'Não informada';
+                    try {
+                        escalaObj = typeof f.escala === 'string' ? JSON.parse(f.escala) : (f.escala || {});
+                        funcaoSalva = escalaObj.funcaoCargo || 'Não informada';
+                    } catch(e) {}
+                    return { ...f, funcao: funcaoSalva, escalaObj };
+                });
             }
+        }
 
-            const corpo = document.getElementById('corpoRelatorio');
-            corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Carregando relatório...</td></tr>';
+        function popularSelectFuncoes() {
+            const select = document.getElementById('selectFuncaoUnica');
+            const funcoesUnicas = [...new Set(cacheFuncionariosGlobal.map(f => f.funcao))].sort();
+            
+            let html = '<option value="TODAS_SEPARADAS">Imprimir todas as funções (em blocos separados)</option>';
+            funcoesUnicas.forEach(fn => {
+                html += `<option value="${fn}">${fn}</option>`;
+            });
+            select.innerHTML = html;
+        }
 
-            const inicio = new Date(dataInicioStr + 'T00:00:00');
-            const fim = new Date(dataFimStr + 'T23:59:59');
-
-            const { data: funcionarios, error: errFunc } = await supabase.from('funcionarios').select('*');
-            if (errFunc) {
-                alert('Erro ao buscar funcionários.');
-                console.error(errFunc);
-                return;
-            }
-
-            const { data: registros, error: errReg } = await supabase
-                .from('registros_ponto')
-                .select('*')
-                .gte('data_hora', inicio.toISOString())
-                .lte('data_hora', fim.toISOString())
-                .order('data_hora', { ascending: true });
-
-            if (errReg) {
-                alert('Erro ao buscar registros de ponto.');
-                console.error(errReg);
-                return;
-            }
-
-            if (!funcionarios || funcionarios.length === 0) {
-                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum funcionário cadastrado.</td></tr>';
-                return;
-            }
-
+        function popularSelectFuncionariosMensal() {
+            const select = document.getElementById('selectFuncionarioMensal');
             let html = '';
-            const mapaRegistros = {};
+            cacheFuncionariosGlobal.forEach(f => {
+                html += `<option value="${f.matricula}">${f.nome} (${f.funcao})</option>`;
+            });
+            select.innerHTML = html;
+        }
+
+        window.tratarMudancaTipoDoc = function() {
+            const tipo = document.getElementById('tipoDocumentoLista').value;
+            const campoTitulo = document.getElementById('campoTituloEvento');
+            const campoData = document.getElementById('campoDataEvento');
+
+            if (tipo === 'PRESENCA') {
+                campoTitulo.style.display = 'flex';
+                campoData.style.display = 'flex';
+            } else {
+                campoTitulo.style.display = 'none';
+                campoData.style.display = 'none';
+            }
+        };
+
+        window.tratarMudancaModo = function() {
+            const modo = document.getElementById('modoImpressaoLista').value;
+            const grupoFuncao = document.getElementById('grupoFuncaoUnica');
+            if (modo === 'FUNCAO') {
+                grupoFuncao.style.display = 'flex';
+            } else {
+                grupoFuncao.style.display = 'none';
+            }
+        };
+
+        // --- GERAÇÃO DA FOLHA DE PONTO MENSAL (PADRÃO OFICIAL) ---
+        window.gerarFolhaPontoMensal = async function() {
+            const mesAnoVal = document.getElementById('mesAnoPonto').value;
+            const modoImpressao = document.getElementById('modoFolhaMensal').value;
+            const matriculaAlvo = document.getElementById('selectFuncionarioMensal').value;
+
+            if (!mesAnoVal) {
+                alert('Selecione o mês e o ano.');
+                return;
+            }
+
+            const [ano, mes] = mesAnoVal.split('-').map(Number);
+            const nomeMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+            const nomeMesFormatado = nomeMeses[mes - 1];
+            const ultimoDiaMes = new Date(ano, mes, 0).getDate();
+
+            const inicioMesStr = `${ano}-${String(mes).padStart(2, '0')}-01T00:00:00`;
+            const fimMesStr = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDiaMes).padStart(2, '0')}T23:59:59`;
+
+            const { data: registros } = await supabase.from('registros_ponto')
+                .select('*')
+                .gte('data_hora', inicioMesStr)
+                .lte('data_hora', fimMesStr);
+
+            const mapaBatidas = {};
             if (registros) {
                 registros.forEach(r => {
-                    const dataDia = r.data_hora.split('T')[0];
-                    const chave = `${dataDia}_${r.matricula}`;
-                    if (!mapaRegistros[chave]) {
-                        mapaRegistros[chave] = [];
-                    }
-                    mapaRegistros[chave].push(r);
+                    const dataApenas = r.data_hora.split('T')[0];
+                    if (!mapaBatidas[r.matricula]) mapaBatidas[r.matricula] = {};
+                    if (!mapaBatidas[r.matricula][dataApenas]) mapaBatidas[r.matricula][dataApenas] = [];
+                    mapaBatidas[r.matricula][dataApenas].push(new Date(r.data_hora));
                 });
             }
 
-            let diaAtual = new Date(inicio);
-            let diasPeriodo = [];
-            while (diaAtual <= fim && diaAtual <= hoje) {
-                diasPeriodo.push(new Date(diaAtual));
-                diaAtual.setDate(diaAtual.getDate() + 1);
+            let funcionariosAlvo = [];
+            if (modoImpressao === 'TODOS') {
+                funcionariosAlvo = cacheFuncionariosGlobal;
+            } else {
+                funcionariosAlvo = cacheFuncionariosGlobal.filter(f => f.matricula === matriculaAlvo);
             }
 
-            diasPeriodo.reverse();
+            if (funcionariosAlvo.length === 0) {
+                alert('Nenhum funcionário selecionado ou encontrado.');
+                return;
+            }
 
-            let totalLinhas = 0;
+            let htmlGeral = '';
 
-            diasPeriodo.forEach(dia => {
-                const dataIsoStr = dia.toISOString().split('T')[0];
-                const dataFormatada = dia.toLocaleDateString('pt-BR');
+            funcionariosAlvo.forEach(func => {
+                const batidasFunc = mapaBatidas[func.matricula] || {};
 
-                funcionarios.forEach(func => {
-                    const chave = `${dataIsoStr}_${func.matricula}`;
-                    const regsFuncDia = mapaRegistros[chave] || [];
+                htmlGeral += `
+                    <div class="pagina-folha-ponto">
+                        <!-- Topo com Título do Período -->
+                        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 5px;">
+                            <div style="font-size: 10pt; font-weight: bold;">
+                                Folha de Ponto - Período: ${nomeMesFormatado} / ${ano}
+                            </div>
+                        </div>
 
-                    let entradaStr = '-';
-                    let saidaStr_status = '<span style="color: #dc3545; font-weight: bold;">Falta</span>';
+                        <!-- Cabeçalho da Escola e Dados do Servidor -->
+                        <table class="tabela-ponto-padrao" style="margin-bottom: 0; border-bottom: none;">
+                            <tr>
+                                <td style="background: #f0f0f0; font-weight: bold; text-align: center; font-size: 9pt;">ESCOLA</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold; text-align: center; font-size: 11pt; padding: 6px;">ESCOLA MUNICIPAL EMILIANO ZAPATA</td>
+                            </tr>
+                        </table>
 
-                    if (regsFuncDia.length > 0) {
-                        if (regsFuncDia[0].tipo === 'Atestado') {
-                            entradaStr = 'Atestado Médico';
-                            saidaStr_status = '<span style="color: #6f42c1; font-weight: bold;">Afastado</span>';
+                        <table class="tabela-ponto-padrao" style="border-top: none; margin-bottom: 5px;">
+                            <tr>
+                                <td colspan="2" style="text-align: left; font-size: 9pt; border-bottom: 1px solid #000;">
+                                    Empregado: Contrato(   )  Efetivo (   ) Nomeado (   )
+                                </td>
+                                <td style="width: 20%; font-size: 9pt;">Faltas</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; font-size: 10pt; font-weight: bold; width: 60%;">
+                                    Nome: ${func.nome}
+                                </td>
+                                <td style="text-align: left; font-size: 9pt; width: 20%;">
+                                    Carga Horária:<br>40 HS
+                                </td>
+                                <td style="height: 25px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; font-size: 9pt; font-weight: bold;">
+                                    Cargo: ${func.funcao}
+                                </td>
+                                <td colspan="2" style="text-align: left; font-size: 9pt;">
+                                    Justificadas:
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Tabela Principal de Marcações de Dias (1 a 31) -->
+                        <table class="tabela-ponto-padrao">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 8%;">Dia</th>
+                                    <th colspan="2" style="width: 31%;">Entrada</th>
+                                    <th colspan="2" style="width: 31%;">Saída</th>
+                                    <th rowspan="2" style="width: 30%;">Hora Extra</th>
+                                </tr>
+                                <tr>
+                                    <th style="width: 15.5%;">1ª</th>
+                                    <th style="width: 15.5%;">2ª</th>
+                                    <th style="width: 15.5%;">1ª</th>
+                                    <th style="width: 15.5%;">2ª</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                for (let dia = 1; dia <= ultimoDiaMes; dia++) {
+                    const diaStr = String(dia).padStart(2, '0');
+                    const mesStr = String(mes).padStart(2, '0');
+                    const dataChave = `${ano}-${mesStr}-${diaStr}`;
+                    
+                    const dataObj = new Date(ano, mes - 1, dia);
+                    const diaSemana = dataObj.getDay();
+                    const isFDS = (diaSemana === 0 || diaSemana === 6);
+                    const classeFds = isFDS ? 'fim-semana' : '';
+
+                    const batidasDoDia = (batidasFunc[dataChave] || []).sort((a,b) => a - b);
+                    
+                    let e1 = '', s2 = '', e2 = '', s1 = '';
+                    if (batidasDoDia.length > 0) {
+                        e1 = batidasDoDia[0] ? batidasDoDia[0].toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
+                    }
+                    if (batidasDoDia.length > 1) {
+                        // Se houver mais de 2 batidas, consideramos que saiu e voltou (intervalo intermediário)
+                        if (batidasDoDia.length >= 4) {
+                            s1 = batidasDoDia[1] ? batidasDoDia[1].toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
+                            e2 = batidasDoDia[2] ? batidasDoDia[2].toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
+                            s2 = batidasDoDia[3] ? batidasDoDia[3].toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
                         } else {
-                            const primeiraEntrada = new Date(regsFuncDia[0].data_hora);
-                            entradaStr = primeiraEntrada.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-
-                            if (regsFuncDia.length % 2 === 0) {
-                                const ultimaSaida = new Date(regsFuncDia[regsFuncDia.length - 1].data_hora);
-                                saidaStr_status = ultimaSaida.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}) + ' (Concluído)';
-                            } else {
-                                saidaStr_status = '<span style="color: #17a2b8; font-weight: bold;">Em aberto (Trabalhando)</span>';
-                            }
+                            // Apenas 2 batidas: entrada inicial e saída final padrão
+                            s2 = batidasDoDia[batidasDoDia.length - 1] ? batidasDoDia[batidasDoDia.length - 1].toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '';
                         }
                     }
 
-                    html += `
+                    // Cálculo automático de Horas Extras (> 8 horas trabalhadas no dia)
+                    let horaExtraStr = '';
+                    if (batidasDoDia.length >= 2) {
+                        let totalMinutosTrabalhados = 0;
+                        const ultimaIdx = batidasDoDia.length - 1;
+                        totalMinutosTrabalhados += (batidasDoDia[ultimaIdx] - batidasDoDia[0]) / (1000 * 60);
+                        if (batidasDoDia.length >= 4) {
+                            // Desconta o intervalo intermediário se houver saída e retorno
+                            const intervaloMinutos = (batidasDoDia[2] - batidasDoDia[1]) / (1000 * 60);
+                            totalMinutosTrabalhados -= intervaloMinutos;
+                        }
+
+                        const jornadaRegularMinutos = 8 * 60; // 8 horas = 480 minutos
+                        if (totalMinutosTrabalhados > jornadaRegularMinutos) {
+                            const minutosExtras = totalMinutosTrabalhados - jornadaRegularMinutos;
+                            const horasEx = Math.floor(minutosExtras / 60);
+                            const minsEx = Math.round(minutosExtras % 60);
+                            horaExtraStr = `${String(horasEx).padStart(2, '0')}:${String(minsEx).padStart(2, '0')}`;
+                        }
+                    }
+
+                    htmlGeral += `
                         <tr>
-                            <td>${dataFormatada}</td>
-                            <td><strong>${func.nome}</strong></td>
-                            <td>${func.matricula}</td>
-                            <td>${func.turno || 'Manhã/Tarde'}</td>
-                            <td>${entradaStr}</td>
-                            <td>${saidaStr_status}</td>
+                            <td class="${classeFds}" style="font-weight: bold; text-align: center;">${dia}</td>
+                            <td class="${classeFds}">${e1}</td>
+                            <td class="${classeFds}">${e2}</td>
+                            <td class="${classeFds}">${s1}</td>
+                            <td class="${classeFds}">${s2}</td>
+                            <td class="${classeFds}" style="font-size: 8.5pt;">${horaExtraStr}</td>
                         </tr>
                     `;
-                    totalLinhas++;
-                });
+                }
+
+                htmlGeral += `
+                            </tbody>
+                        </table>
+
+                        <!-- Rodapé de Assinaturas -->
+                        <div class="assinatura-rodape">
+                            <div class="bloco-assinatura-ponto">Assinatura do Empregado(a)</div>
+                            <div class="bloco-assinatura-ponto">Direção</div>
+                        </div>
+                    </div>
+                `;
             });
 
-            if (totalLinhas === 0) {
-                corpo.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro encontrado para este período.</td></tr>';
-            } else {
-                corpo.innerHTML = html;
-            }
+            document.getElementById('areaImpressao').innerHTML = htmlGeral;
+            window.print();
         };
+
+        // --- GERAÇÃO DE LISTA DE PRESENÇA E FUNCIONÁRIOS ---
+        window.gerarDocumentoListagem = function() {
+            const tipoDoc = document.getElementById('tipoDocumentoLista').value;
+            const modo = document.getElementById('modoImpressaoLista').value;
+            const funcaoEspecifica = document.getElementById('selectFuncaoUnica').value;
+            const tituloEvento = document.getElementById('inputTituloEvento').value || 'Reunião Geral';
+            const dataEvento = document.getElementById('inputDataEvento').value.split('-').reverse().join('/');
+
+            if (cacheFuncionariosGlobal.length === 0) {
+                alert('Nenhum funcionário carregado.');
+                return;
+            }
+
+            let htmlImpressao = `
+                <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;">
+                    <h1 style="font-size: 16pt; margin: 0; text-transform: uppercase;">Escola Municipal Emiliano Zapata</h1>
+                    <p style="font-size: 11pt; margin: 5px 0 0 0;"><strong>${tipoDoc === 'PRESENCA' ? 'LISTA DE PRESENÇA: ' + tituloEvento + (dataEvento ? ' (' + dataEvento + ')' : '') : 'LISTAGEM GERAL DE FUNCIONÁRIOS'}</strong></p>
+                </div>
+            `;
+
+            if (modo === 'GERAL') {
+                htmlImpressao += montarTabelaLista(cacheFuncionariosGlobal, tipoDoc);
+            } else {
+                let funcoesAlvo = [];
+                if (funcaoEspecifica === 'TODAS_SEPARADAS' || !funcaoEspecifica) {
+                    funcoesAlvo = [...new Set(cacheFuncionariosGlobal.map(f => f.funcao))].sort();
+                } else {
+                    funcoesAlvo = [funcaoEspecifica];
+                }
+
+                funcoesAlvo.forEach(fn => {
+                    const filtrados = cacheFuncionariosGlobal.filter(f => f.funcao === fn);
+                    if (filtrados.length > 0) {
+                        htmlImpressao += `<h3 style="margin-top: 20px; font-size: 12pt; border-bottom: 1px solid #000; padding-bottom: 3px;">Cargo / Função: ${fn}</h3>`;
+                        htmlImpressao += montarTabelaLista(filtrados, tipoDoc);
+                    }
+                });
+            }
+
+            if (tipoDoc === 'PRESENCA') {
+                htmlImpressao += `
+                    <div style="margin-top: 40px; display: flex; justify-content: space-between; page-break-inside: avoid;">
+                        <div style="text-align: center; width: 40%; border-top: 1px solid #000; padding-top: 5px; margin: 0 auto;">Direção</div>
+                        <div style="text-align: center; width: 40%; border-top: 1px solid #000; padding-top: 5px; margin: 0 auto;">Coordenação</div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('areaImpressao').innerHTML = htmlImpressao;
+            window.print();
+        };
+
+        function montarTabelaLista(lista, tipoDoc) {
+            let html = `
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #000; padding: 6px; background: #eee; width: 8%;">Nº</th>
+                            <th style="border: 1px solid #000; padding: 6px; background: #eee; width: ${tipoDoc === 'PRESENCA' ? '35%' : '45%'}">Nome Completo</th>
+                            <th style="border: 1px solid #000; padding: 6px; background: #eee; width: 25%;">Função / Cargo</th>
+                            <th style="border: 1px solid #000; padding: 6px; background: #eee; width: ${tipoDoc === 'PRESENCA' ? '32%' : '22%'}">${tipoDoc === 'PRESENCA' ? 'Assinatura / Visto' : 'Matrícula'}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            lista.forEach((f, index) => {
+                html += `
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center;">${index + 1}</td>
+                        <td style="border: 1px solid #000; padding: 6px;"><strong>${f.nome}</strong></td>
+                        <td style="border: 1px solid #000; padding: 6px;">${f.funcao}</td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center;">${tipoDoc === 'PRESENCA' ? '' : f.matricula}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            return html;
+        }
     </script>
 </body>
 </html>
