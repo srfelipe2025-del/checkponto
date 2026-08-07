@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Ponto - EMEZ</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h2 { color: #333; margin-bottom: 5px; }
+        p { color: #666; font-size: 13px; margin-bottom: 15px; }
+        #reader { width: 100%; border-radius: 6px; overflow: hidden; }
+        #mensagem { margin-top: 15px; font-weight: bold; font-size: 14px; }
+        #avisoLink { background: #fff3cd; color: #856404; padding: 10px; border-radius: 4px; font-size: 12px; margin-bottom: 15px; display: none; border: 1px solid #ffeeba; }
+        
+        /* Painel Administrativo */
+        .admin-box { background: #e9ecef; border: 1px solid #ced4da; display: none; text-align: left; }
+        .admin-box h3 { text-align: center; margin-top: 0; color: #007bff; }
+        .btn-admin { background: #007bff; color: #fff; border: none; padding: 10px; width: 100%; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        .btn-admin:hover { background: #0056b3; }
+        .link-gerado { word-break: break-all; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 8px; font-size: 11px; }
+        hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Visão do Funcionário (Leitor QR Code) -->
+    <div class="card" id="cardLeitor">
+        <h2>Registro por QR Code</h2>
+        <p>Aponte a câmera para registrar sua entrada ou saída.</p>
+        <div id="avisoLink"></div>
+        <div id="reader"></div>
+        <div id="mensagem"></div>
+    </div>
+
+    <!-- Painel Administrativo (Apenas para gerar links, sem cadastro de locais) -->
+    <div class="card admin-box" id="painelAdmin">
+        <h3>Painel do Administrador</h3>
+        <p style="font-weight: bold; margin-bottom: 5px;">🔗 Enviar Links para Funcionários</p>
+        <button class="btn-admin" onclick="gerarLink('permanente')">Copiar Link Permanente</button>
+        <button class="btn-admin" style="background: #ffc107; color: #000;" onclick="gerarLink('diario')">Copiar Link Válido Só Para Hoje</button>
+        <div id="boxLinkGerado" style="display:none;">
+            <div id="textoLinkGerado" class="link-gerado"></div>
+        </div>
+    </div>
+
+    <!-- Importação do Supabase -->
+    <script type="module">
+        import { supabase } from './services/supabase.js';
+
+        let scannerAtivo = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataValidade = urlParams.get('data'); 
+            const isAdmin = urlParams.get('admin');
+            const avisoDiv = document.getElementById('avisoLink');
+
+            // Se for admin, revela o painel resumido de links
+            if (isAdmin === 'true') {
+                document.getElementById('painelAdmin').style.display = 'block';
+            }
+
+            // Validação de data do link enviado ao funcionário
+            if (dataValidade) {
+                const hojeStr = new Date().toISOString().split('T')[0];
+                avisoDiv.style.display = 'block';
+                
+                if (dataValidade !== hojeStr) {
+                    avisoDiv.style.background = '#f8d7da';
+                    avisoDiv.style.color = '#721c24';
+                    avisoDiv.innerHTML = `❌ Este link diário expirou! Era válido apenas para ${dataValidade.split('-').reverse().join('/')}.`;
+                    return; 
+                } else {
+                    avisoDiv.innerHTML = `🔒 Link restrito e válido apenas para hoje.`;
+                }
+            }
+
+            // Inicia a câmera para leitura do QR Code
+            iniciarScannerQR();
+        });
+
+        function iniciarScannerQR() {
+            scannerAtivo = new Html5QrcodeScanner("reader", { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 } 
+            }, false);
+
+            scannerAtivo.render(onScanSuccess, () => {});
+        }
+
+        async function onScanSuccess(decodedText) {
+            const matriculaLida = decodedText.trim();
+            const msgDiv = document.getElementById('mensagem');
+
+            msgDiv.style.color = '#007bff';
+            msgDiv.innerText = `Lido (Matrícula: ${matriculaLida}). Obtendo GPS...`;
+
+            if (scannerAtivo) {
+                try { await scannerAtivo.pause(); } catch (e) {}
+            }
+
+            if (!navigator.geolocation) {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = 'Seu navegador não suporta geolocalização.';
+                retomarScanner();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const usuarioLat = position.coords.latitude;
+                const usuarioLng = position.coords.longitude;
+
+                // Confere funcionário
+                const { data: func, error: errFunc } = await supabase
+                    .from('funcionarios')
+                    .select('*')
+                    .eq('matricula', matriculaLida)
+                    .single();
+
+                if (errFunc || !func) {
+                    msgDiv.style.color = 'red';
+                    msgDiv.innerText = 'Matrícula não encontrada no sistema.';
+                    retomarScanner();
+                    return;
+                }
+
+                // Define Entrada ou Saída
+                const hojeStr = new Date().toISOString().split('T')[0];
+                const { data: regs } = await supabase
+                    .from('registros_ponto')
+                    .select('*')
+                    .eq('matricula', matriculaLida)
+                    .gte('data_hora', hojeStr + 'T00:00:00')
+                    .lte('data_hora', hojeStr + 'T23:59:59')
+                    .order('data_hora', { ascending: true });
+
+                let tipoRegistro = (regs && regs.length > 0 && regs.length % 2 !== 0) ? 'Saída' : 'Entrada';
+
+                const agora = new Date();
+                const dataHoraLocal = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-${String(agora.getDate()).padStart(2, '0')}T${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}:${String(agora.getSeconds()).padStart(2, '0')}-03:00`;
+
+                // Salva o ponto capturando as coordenadas de GPS atuais
+                const { error: errInsert } = await supabase.from('registros_ponto').insert([{
+                    matricula: matriculaLida,
+                    tipo: tipoRegistro,
+                    data_hora: dataHoraLocal,
+                    latitude: usuarioLat,
+                    longitude: usuarioLng
+                }]);
+
+                if (errInsert) {
+                    msgDiv.style.color = 'red';
+                    msgDiv.innerText = 'Erro ao salvar ponto.';
+                    retomarScanner();
+                    return;
+                }
+
+                msgDiv.style.color = 'green';
+                msgDiv.innerText = `✅ Sucesso! ${tipoRegistro} registrada às ${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}.`;
+                
+                setTimeout(() => {
+                    msgDiv.innerText = '';
+                    retomarScanner();
+                }, 4000);
+
+            }, (error) => {
+                msgDiv.style.color = 'red';
+                msgDiv.innerText = 'Ative a localização GPS para registrar.';
+                retomarScanner();
+            }, { timeout: 10000, enableHighAccuracy: true });
+        }
+
+        async function retomarScanner() {
+            if (scannerAtivo) {
+                try { await scannerAtivo.resume(); } catch (e) {}
+            }
+        }
+
+        // Gerador de Links
+        window.gerarLink = function(tipo) {
+            let urlBase = window.location.origin + window.location.pathname;
+            const box = document.getElementById('boxLinkGerado');
+            const texto = document.getElementById('textoLinkGerado');
+            
+            box.style.display = 'block';
+
+            if (tipo === 'diario') {
+                const hojeStr = new Date().toISOString().split('T')[0];
+                const linkCompleto = `${urlBase}?data=${hojeStr}`;
+                texto.innerText = linkCompleto;
+                navigator.clipboard.writeText(linkCompleto);
+                alert('Link diário copiado para a área de transferência!');
+            } else {
+                texto.innerText = urlBase;
+                navigator.clipboard.writeText(urlBase);
+                alert('Link permanente copiado para a área de transferência!');
+            }
+        };
+    </script>
+</body>
+</html>
