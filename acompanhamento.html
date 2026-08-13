@@ -439,14 +439,26 @@
         const SENHA_VALIDA = "emez2026";
 
         window.addEventListener('DOMContentLoaded', () => {
-            const logado = localStorage.getItem('gestor_logado_emez');
-            if (logado === 'true') {
-                document.getElementById('telaLogin').style.display = 'none';
-                document.getElementById('painelPrincipal').style.display = 'block';
-                document.body.style.alignItems = 'flex-start';
-                carregarDados();
+    const logado = localStorage.getItem('gestor_logado_emez');
+    if (logado === 'true') {
+        document.getElementById('telaLogin').style.display = 'none';
+        document.getElementById('painelPrincipal').style.display = 'block';
+        document.body.style.alignItems = 'flex-start';
+        carregarDados();
+
+        // 2. Atualização INSTANTÂNEA via Realtime do Supabase
+        supabase
+          .channel('acompanhamento-realtime')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'registros_ponto' },
+            () => {
+              carregarDados();
             }
-        });
+          )
+          .subscribe();
+    }
+});
 
         document.getElementById('formLoginGestor').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -686,7 +698,22 @@
                         const horasNormaisFormatadas = `${Math.floor(minutosNormais / 60)}h ${Math.round(minutosNormais % 60)}m`;
                         const horasExtrasFormatadas = minutosExtras > 0 ? `${Math.floor(minutosExtras / 60)}h ${Math.round(minutosExtras % 60)}m` : '0h';
 
-                        if (batidasDoFunc.length % 2 !== 0) {
+                        // Pega a data atual no formato YYYY-MM-DD para comparar
+                        const hojeStr = new Date().toISOString().split('T')[0];
+                        // Supondo que a data do registro da linha atual esteja em 'dataRegistro' ou na variável correspondente do loop
+                        const dataDoPonto = window.dataSelecionada || hojeStr; // Ou a variável de data do seu loop de exibição
+
+                        if (batidasDoFunc.length % 2 !== 0 && dataDoPonto < hojeStr) {
+                            statusCalculado = 'ATRASADO';
+                            infoTurnoStatus += `<br><span style="color: #dc3545; font-weight: bold; font-size: 11px;">⚠️ Falta Saída (Atribuído 23:59) - Ajuste Necessário</span>`;
+                            
+                            htmlProgresso = `
+                                <div style="font-family: monospace; font-size: 11px; color: #dc3545; margin-bottom: 2px;">
+                                    ⚠️ Ponto em aberto. Saída atribuída às 23:59.
+                                </div>
+                            `;
+                        } else if (batidasDoFunc.length % 2 !== 0) {
+                            // Se for hoje e estiver com número ímpar, continua como "Trabalhando" normalmente
                             statusCalculado = 'TRABALHANDO';
                             infoTurnoStatus += `<br><span style="color: #17a2b8; font-weight: bold; font-size: 11px;">Trabalhando (Em aberto)</span>`;
                         } else {
