@@ -286,11 +286,10 @@
                 return;
             }
 
-            // Descobre se é Entrada ou Saída
             let ehEntrada = true;
             tipoRegistroPendente = 'Trabalhando';
             textoAcaoPendente = 'Bom trabalho!';
-            corFundoPendente = 'linear-gradient(135deg, #059669 0%, #047857 100%)'; // Verde para entrada
+            corFundoPendente = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
 
             if (regs && regs.length > 0) {
                 const ultimo = regs[regs.length - 1];
@@ -298,13 +297,12 @@
                     ehEntrada = false;
                     tipoRegistroPendente = 'Encerrado';
                     textoAcaoPendente = 'Até Mais!';
-                    corFundoPendente = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'; // Azul para saída
+                    corFundoPendente = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
                 }
             }
 
             tocarBeep();
 
-            // Se for ENTRADA, exibe a pergunta de humor por até 5 segundos
             if (ehEntrada) {
                 const primeiroNome = func.nome.split(' ')[0];
                 document.getElementById('tituloHumor').innerText = `Olá, ${primeiroNome}!`;
@@ -315,48 +313,50 @@
                     const modalH = document.getElementById('modalHumor');
                     if (modalH.style.display === 'flex') {
                         modalH.style.display = 'none';
-                        // Se não clicou em nada em 5 segundos, salva o ponto sem humor (ou com humor nulo) e avança
                         finalizarRegistroPonto(null);
                     }
                 }, 5000);
             } else {
-                // Se for SAÍDA, vai direto registrar sem perguntar humor
                 finalizarRegistroPonto(null);
             }
         }
 
-        // Chamado quando o usuário clica em um emoji
         window.selecionarHumor = function(emojiEscolhido) {
             clearTimeout(timerHumor);
             document.getElementById('modalHumor').style.display = 'none';
             finalizarRegistroPonto(emojiEscolhido);
         };
 
-        // Função central para salvar no Supabase e mostrar a tela de sucesso
         async function finalizarRegistroPonto(emojiHumor) {
             const agora = new Date();
             const horaFormatada = agora.toLocaleTimeString('pt-BR');
 
+            // Envio padrão que funciona com ou sem a coluna humor criada
             const dadosRegistro = {
                 matricula: funcionarioAtual.matricula,
                 tipo: tipoRegistroPendente,
                 data_hora: agora.toISOString()
             };
 
-            // Só adiciona o campo humor se ele foi escolhido
             if (emojiHumor) {
                 dadosRegistro.humor = emojiHumor;
             }
 
-            const { error: errInsert } = await supabase.from('registros_ponto').insert([dadosRegistro]);
+            let { error: errInsert } = await supabase.from('registros_ponto').insert([dadosRegistro]);
+
+            // Se der erro por causa da coluna humor não existir, tenta salvar sem o humor para não travar o ponto
+            if (errInsert && emojiHumor) {
+                delete dadosRegistro.humor;
+                const retry = await supabase.from('registros_ponto').insert([dadosRegistro]);
+                errInsert = retry.error;
+            }
 
             if (errInsert) {
-                alert('Erro ao salvar ponto. Verifique se a conexão está ativa.');
+                alert('Erro ao salvar ponto. Verifique a conexão.');
                 lendoAtivo = true;
                 return;
             }
 
-            // Exibe a mensagem de sucesso que já tinha antes
             const modal = document.getElementById('modalSucesso');
             modal.style.background = corFundoPendente;
             document.getElementById('msgNome').innerText = funcionarioAtual.nome;
