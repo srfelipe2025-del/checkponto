@@ -4,59 +4,219 @@
     <meta charset="UTF-8">
     <title>CheckPonto - Leitor de Crachá</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        .container { text-align: center; width: 100%; max-width: 600px; padding: 20px; }
-        h1 { margin-bottom: 5px; font-size: 28px; }
-        p { color: #aaa; margin-bottom: 20px; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: #0b0f19; 
+            color: #f3f4f6; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        .container { 
+            text-align: center; 
+            width: 100%; 
+            max-width: 500px; 
+            padding: 30px; 
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 { 
+            margin: 0 0 8px 0; 
+            font-size: 26px; 
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        p { 
+            color: #9ca3af; 
+            margin-bottom: 24px; 
+            font-size: 14px;
+        }
         
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; border: 4px solid #007bff; background: #000; }
+        #reader { 
+            width: 100% !important; 
+            border-radius: 16px !important; 
+            overflow: hidden; 
+            border: 2px solid #3b82f6 !important; 
+            background: #000; 
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
         
-        /* Espelhamento corrigido da câmera (Remove o reflexo de espelho) */
         #reader video {
             transform: scaleX(-1);
             -webkit-transform: scaleX(-1);
         }
         
-        /* Área secreta de admin / tela cheia discreta no canto */
-        .menu-secreto { position: absolute; top: 15px; left: 15px; display: flex; gap: 10px; opacity: 0.1; transition: opacity 0.3s; }
-        .menu-secreto:hover { opacity: 1; } /* Só aparece bem se passar o mouse por cima do canto */
-        .btn-link { padding: 6px 12px; background: #333; color: #aaa; text-decoration: none; border-radius: 4px; font-size: 12px; border: 1px solid #444; cursor: pointer; }
-        .btn-link:hover { background: #444; color: white; }
+        .menu-secreto { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            display: flex; 
+            gap: 8px; 
+            opacity: 0.05; 
+            transition: opacity 0.3s ease; 
+        }
+        .menu-secreto:hover { opacity: 1; } 
+        
+        .btn-link { 
+            padding: 6px 14px; 
+            background: #1f2937; 
+            color: #9ca3af; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: 600;
+            border: 1px solid #374151; 
+            cursor: pointer; 
+            transition: all 0.2s;
+        }
+        .btn-link:hover { background: #374151; color: white; }
 
-        /* Estilo do Card de Sucesso Kiosk (Tela Cheia) */
+        /* Modal de Humor Interativo */
+        #modalHumor {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 15, 25, 0.96);
+            z-index: 9998;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        #modalHumor h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        #modalHumor p {
+            font-size: 18px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+
+        .opcoes-humor {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-humor {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 20px;
+            padding: 20px 25px;
+            font-size: 45px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-humor span {
+            font-size: 14px;
+            color: #d1d5db;
+            font-weight: 600;
+        }
+
+        .btn-humor:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            background: #374151;
+        }
+
+        /* Tela de Sucesso Kiosk (Fullscreen Dinâmico) */
         #modalSucesso {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 123, 255, 0.95);
             z-index: 9999;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
+            animation: fadeIn 0.25s ease-out;
+            padding: 20px;
         }
-        #modalSucesso h2 { font-size: 45px; margin: 0 0 10px 0; }
-        #modalSucesso p { font-size: 24px; color: #fff; margin: 5px 0; }
-        #modalSucesso .hora { font-size: 60px; font-weight: bold; margin-top: 20px; background: rgba(0,0,0,0.2); padding: 10px 30px; border-radius: 10px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #modalSucesso h2 { 
+            font-size: 42px; 
+            margin: 0 0 12px 0; 
+            font-weight: 800;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        #modalSucesso p { 
+            font-size: 26px; 
+            color: #ffffff; 
+            margin: 0 0 24px 0; 
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        #modalSucesso .hora { 
+            font-size: 56px; 
+            font-weight: 800; 
+            background: rgba(0, 0, 0, 0.25); 
+            padding: 12px 36px; 
+            border-radius: 16px; 
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
-    <!-- Cantinho secreto/discreto para admin e tela cheia -->
     <div class="menu-secreto">
         <button class="btn-link" onclick="tentarAcessarGestao()">Admin</button>
         <button class="btn-link" onclick="toggleFullscreen()">Tela Cheia</button>
     </div>
 
     <div class="container">
-        <h1>CheckPonto - Leitor</h1>
+        <h1>CheckPonto</h1>
         <p>Aponte o crachá com o QR Code para a câmera</p>
         <div id="reader"></div>
     </div>
 
-    <!-- Tela de Alerta Visual Kiosk -->
+    <!-- Modal de Pergunta de Humor (Exibido apenas na entrada) -->
+    <div id="modalHumor">
+        <h2 id="tituloHumor">Olá!</h2>
+        <p>Como você está se sentindo hoje?</p>
+        <div class="opcoes-humor">
+            <button class="btn-humor" onclick="selecionarHumor('🤩')">🤩<span>Ótimo</span></button>
+            <button class="btn-humor" onclick="selecionarHumor('😊')">😊<span>Bem</span></button>
+            <button class="btn-humor" onclick="selecionarHumor('😐')">😐<span>Neutro</span></button>
+            <button class="btn-humor" onclick="selecionarHumor('🔋')">🔋<span>Cansado</span></button>
+        </div>
+    </div>
+
+    <!-- Tela de Alerta Visual Kiosk de Sucesso -->
     <div id="modalSucesso">
         <h2 id="msgNome">Bem-vindo!</h2>
-        <p id="msgTipo">Ponto Registrado com Sucesso</p>
+        <p id="msgTipo">Bom trabalho!</p>
         <div class="hora" id="msgHora">00:00:00</div>
     </div>
 
@@ -66,6 +226,11 @@
         import { supabase } from './services/supabase.js';
 
         let lendoAtivo = true;
+        let funcionarioAtual = null;
+        let tipoRegistroPendente = 'Trabalhando';
+        let textoAcaoPendente = 'Bom trabalho!';
+        let corFundoPendente = '';
+        let timerHumor = null;
 
         function tocarBeep() {
             try {
@@ -89,8 +254,6 @@
             lendoAtivo = false;
 
             const matricula = decodedText.trim();
-            const agora = new Date();
-            const horaFormatada = agora.toLocaleTimeString('pt-BR');
 
             const { data: func, error: errFunc } = await supabase
                 .from('funcionarios')
@@ -104,6 +267,8 @@
                 setTimeout(() => { lendoAtivo = true; }, 2000);
                 return;
             }
+
+            funcionarioAtual = func;
 
             const hojeInicio = new Date();
             hojeInicio.setHours(0, 0, 0, 0);
@@ -121,41 +286,88 @@
                 return;
             }
 
-            let tipoRegistro = 'Trabalhando';
-            let textoAcao = 'Entrada Registrada';
+            // Descobre se é Entrada ou Saída
+            let ehEntrada = true;
+            tipoRegistroPendente = 'Trabalhando';
+            textoAcaoPendente = 'Bom trabalho!';
+            corFundoPendente = 'linear-gradient(135deg, #059669 0%, #047857 100%)'; // Verde para entrada
 
             if (regs && regs.length > 0) {
                 const ultimo = regs[regs.length - 1];
                 if (ultimo.tipo === 'Trabalhando') {
-                    tipoRegistro = 'Encerrado';
-                    textoAcao = 'Saída Registrada';
+                    ehEntrada = false;
+                    tipoRegistroPendente = 'Encerrado';
+                    textoAcaoPendente = 'Até Mais!';
+                    corFundoPendente = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'; // Azul para saída
                 }
-            }
-
-            const { error: errInsert } = await supabase.from('registros_ponto').insert([{
-                matricula: matricula,
-                tipo: tipoRegistro,
-                data_hora: agora.toISOString()
-            }]);
-
-            if (errInsert) {
-                alert('Erro ao salvar ponto.');
-                lendoAtivo = true;
-                return;
             }
 
             tocarBeep();
 
+            // Se for ENTRADA, exibe a pergunta de humor por até 5 segundos
+            if (ehEntrada) {
+                const primeiroNome = func.nome.split(' ')[0];
+                document.getElementById('tituloHumor').innerText = `Olá, ${primeiroNome}!`;
+                document.getElementById('modalHumor').style.display = 'flex';
+
+                clearTimeout(timerHumor);
+                timerHumor = setTimeout(() => {
+                    const modalH = document.getElementById('modalHumor');
+                    if (modalH.style.display === 'flex') {
+                        modalH.style.display = 'none';
+                        // Se não clicou em nada em 5 segundos, salva o ponto sem humor (ou com humor nulo) e avança
+                        finalizarRegistroPonto(null);
+                    }
+                }, 5000);
+            } else {
+                // Se for SAÍDA, vai direto registrar sem perguntar humor
+                finalizarRegistroPonto(null);
+            }
+        }
+
+        // Chamado quando o usuário clica em um emoji
+        window.selecionarHumor = function(emojiEscolhido) {
+            clearTimeout(timerHumor);
+            document.getElementById('modalHumor').style.display = 'none';
+            finalizarRegistroPonto(emojiEscolhido);
+        };
+
+        // Função central para salvar no Supabase e mostrar a tela de sucesso
+        async function finalizarRegistroPonto(emojiHumor) {
+            const agora = new Date();
+            const horaFormatada = agora.toLocaleTimeString('pt-BR');
+
+            const dadosRegistro = {
+                matricula: funcionarioAtual.matricula,
+                tipo: tipoRegistroPendente,
+                data_hora: agora.toISOString()
+            };
+
+            // Só adiciona o campo humor se ele foi escolhido
+            if (emojiHumor) {
+                dadosRegistro.humor = emojiHumor;
+            }
+
+            const { error: errInsert } = await supabase.from('registros_ponto').insert([dadosRegistro]);
+
+            if (errInsert) {
+                alert('Erro ao salvar ponto. Verifique se a conexão está ativa.');
+                lendoAtivo = true;
+                return;
+            }
+
+            // Exibe a mensagem de sucesso que já tinha antes
             const modal = document.getElementById('modalSucesso');
-            document.getElementById('msgNome').innerText = func.nome;
-            document.getElementById('msgTipo').innerText = textoAcao;
+            modal.style.background = corFundoPendente;
+            document.getElementById('msgNome').innerText = funcionarioAtual.nome;
+            document.getElementById('msgTipo').innerText = textoAcaoPendente;
             document.getElementById('msgHora').innerText = horaFormatada;
             modal.style.display = 'flex';
 
             setTimeout(() => {
                 modal.style.display = 'none';
                 lendoAtivo = true;
-            }, 2200);
+            }, 2500);
         }
 
         const html5QrCode = new Html5Qrcode("reader");
@@ -167,7 +379,6 @@
             console.error("Erro ao iniciar a câmera:", err);
         });
 
-        // Função de Proteção por Senha para o Painel de Gestão
         window.tentarAcessarGestao = function() {
             const senha = prompt("Digite a senha de administrador:");
             if (senha === "1234" || senha === "admin") {
