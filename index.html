@@ -313,9 +313,9 @@
                     const modalH = document.getElementById('modalHumor');
                     if (modalH.style.display === 'flex') {
                         modalH.style.display = 'none';
-                        finalizarRegistroPonto(null); // Passa null se estourar o tempo
+                        finalizarRegistroPonto(null);
                     }
-                }, 5000);
+                }, 10000);
             } else {
                 finalizarRegistroPonto(null);
             }
@@ -331,27 +331,17 @@
             const agora = new Date();
             const horaFormatada = agora.toLocaleTimeString('pt-BR');
 
-            // Monta os dados básicos do ponto
             const dadosRegistro = {
                 matricula: funcionarioAtual.matricula,
                 tipo: tipoRegistroPendente,
                 data_hora: agora.toISOString()
             };
 
-            // Tenta enviar com o humor caso ele exista
             if (emojiHumor) {
                 dadosRegistro.humor = emojiHumor;
             }
 
-            let { error: errInsert } = await supabase.from('registros_ponto').insert([dadosRegistro]);
-
-            // Se der erro ao salvar (geralmente porque a coluna humor ainda não foi criada no Supabase),
-            // ele remove o campo humor automaticamente e grava o ponto sem erros!
-            if (errInsert && emojiHumor) {
-                delete dadosRegistro.humor;
-                const retry = await supabase.from('registros_ponto').insert([dadosRegistro]);
-                errInsert = retry.error;
-            }
+            const { error: errInsert } = await supabase.from('registros_ponto').insert([dadosRegistro]);
 
             if (errInsert) {
                 alert('Erro ao salvar ponto. Verifique a conexão.');
@@ -359,7 +349,6 @@
                 return;
             }
 
-            // Exibe a tela de sucesso final
             const modal = document.getElementById('modalSucesso');
             modal.style.background = corFundoPendente;
             document.getElementById('msgNome').innerText = funcionarioAtual.nome;
@@ -392,7 +381,7 @@
         };
 
         window.toggleFullscreen = function() {
-            if (!document.documentElement.requestFullscreen()) {
+            if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                     alert(`Erro ao tentar modo tela cheia: ${err.message}`);
                 });
