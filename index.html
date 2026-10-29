@@ -162,13 +162,15 @@
             to { opacity: 1; transform: scale(1); }
         }
 
+        /* Mensagem Principal (Bom trabalho! / Até Mais!) agora maior */
         #modalSucesso h2 { 
-            font-size: 42px; 
+            font-size: 54px; 
             margin: 0 0 12px 0; 
             font-weight: 800;
             text-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
+        /* Nome da Pessoa agora menor abaixo da mensagem */
         #modalSucesso p { 
             font-size: 26px; 
             color: #ffffff; 
@@ -213,10 +215,10 @@
         </div>
     </div>
 
-    <!-- Tela de Alerta Visual Kiosk de Sucesso -->
+    <!-- Tela de Alerta Visual Kiosk de Sucesso (Invertido: Ação maior, Nome menor) -->
     <div id="modalSucesso">
-        <h2 id="msgNome">Bem-vindo!</h2>
-        <p id="msgTipo">Bom trabalho!</p>
+        <h2 id="msgTipo">Bom trabalho!</h2>
+        <p id="msgNome">Bem-vindo!</p>
         <div class="hora" id="msgHora">00:00:00</div>
     </div>
 
@@ -315,7 +317,7 @@
                         modalH.style.display = 'none';
                         finalizarRegistroPonto(null);
                     }
-                }, 10000);
+                }, 10000); // 10 segundos configurados
             } else {
                 finalizarRegistroPonto(null);
             }
@@ -351,8 +353,8 @@
 
             const modal = document.getElementById('modalSucesso');
             modal.style.background = corFundoPendente;
-            document.getElementById('msgNome').innerText = funcionarioAtual.nome;
             document.getElementById('msgTipo').innerText = textoAcaoPendente;
+            document.getElementById('msgNome').innerText = funcionarioAtual.nome;
             document.getElementById('msgHora').innerText = horaFormatada;
             modal.style.display = 'flex';
 
